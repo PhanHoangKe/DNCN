@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Udemy Việt Nam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fa;
+            min-height: 100vh;
+            color: #1c1d1f;
+        }
+
+        .header {
+            background-color: #fff;
+            border-bottom: 1px solid #d1d7dc;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .header.scrolled {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            height: 72px;
+            max-width: 1340px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            margin-right: 24px;
+            display: flex;
+            align-items: center;
+            color: #5624d0;
+            text-decoration: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            letter-spacing: -1px;
+        }
+
+        .logo:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .categories-btn {
+            padding: 0 16px;
+            height: 48px;
+            font-size: 14px;
+            color: #1c1d1f;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .categories-btn:hover {
+            background: #f7f9fa;
+            color: #5624d0;
+        }
+
+        .categories-btn.active {
+            color: #5624d0;
+        }
+
+        .categories-btn.active .arrow-down {
+            transform: rotate(180deg);
+        }
+
+        .categories-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            border: 1px solid #d1d7dc;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            width: 280px;
+            margin-top: 8px;
+            display: none;
+            z-index: 1001;
+            border-radius: 4px;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .categories-dropdown.active {
+            display: block;
+        }
+
+        .category-item {
+            padding: 14px 20px;
+            font-size: 14px;
+            color: #1c1d1f;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 400;
+            border-left: 3px solid transparent;
+        }
+
+        .category-item:hover {
+            background: #f7f9fa;
+            color: #5624d0;
+            border-left-color: #5624d0;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 750px;
+            margin: 0 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 48px 12px 48px;
+            border: 1px solid #1c1d1f;
+            border-radius: 9999px;
+            font-size: 14px;
+            outline: none;
+            background-color: #f7f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #5624d0;
+            box-shadow: 0 0 0 4px rgba(86, 36, 208, 0.2);
+            background-color: #fff;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6a6f73;
+            font-size: 16px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .nav-link {
+            padding: 0 16px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #1c1d1f;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: #5624d0;
+        }
+
+        .icon-btn {
+            padding: 0 12px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #1c1d1f;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            background: #f7f9fa;
+            color: #5624d0;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 8px;
+            right: 4px;
+            background: #a435f0;
+            color: #fff;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 0 6px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 12px;
+            right: 10px;
+            background: #a435f0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .btn {
+            padding: 0 20px;
+            height: 40px;
+            border: 1px solid #1c1d1f;
+            background: none;
+            color: #1c1d1f;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #f7f9fa;
+            color: #1c1d1f;
+        }
+
+        .btn-primary {
+            background: #1c1d1f;
+            color: #fff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .user-menu {
+            position: relative;
+            margin-left: 8px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            background: #5624d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .user-avatar:hover {
+            border-color: #a435f0;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: #fff;
+            border: 1px solid #d1d7dc;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            width: 300px;
+            display: none;
+            z-index: 1001;
+            border-radius: 4px;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .user-dropdown.active {
+            display: block;
+        }
+
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid #d1d7dc;
+            background: #f7f9fa;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #1c1d1f;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #6a6f73;
+        }
+
+        .dropdown-section {
+            border-bottom: 1px solid #d1d7dc;
+        }
+
+        .dropdown-item {
+            padding: 14px 20px;
+            font-size: 14px;
+            color: #1c1d1f;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 400;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-item:hover {
+            background: #f7f9fa;
+            color: #5624d0;
+            border-left-color: #5624d0;
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .globe-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .arrow-down {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Animations */
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive styles */
+        @@media (max-width: 1024px) {
+            .search-container {
+                max-width: 450px;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .header-container {
+                padding: 0 16px;
+                height: 64px;
+            }
+            
+            .categories-btn,
+            .nav-link {
+                padding: 0 12px;
+                font-size: 13px;
+            }
+
+            .search-container {
+                max-width: 300px;
+                margin: 0 12px;
+            }
+
+            .nav-link span {
+                display: none;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .categories-btn span {
+                display: none;
+            }
+
+            .search-container {
+                max-width: 200px;
+            }
+
+            .nav-links .btn {
+                padding: 0 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Demo content styles */
+        .demo-content {
+            max-width: 1340px;
+            margin: 40px auto;
+            padding: 0 24px;
+            text-align: center;
+        }
+
+        .demo-content h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: #1c1d1f;
+        }
+
+        .demo-content p {
+            font-size: 18px;
+            color: #6a6f73;
+            margin-bottom: 24px;
+        }
+
+        .toggle-btn {
+            background: #5624d0;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #4a1fb8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header chưa đăng nhập -->
+    <div class="header" id="header-logged-out">
+        <div class="header-container">
+            <a href="#" class="logo">udemy</a>
+            
+            <a href="#" class="categories-btn" id="categories-btn">
+                <span>Danh mục</span>
+                <i class="fas fa-chevron-down arrow-down"></i>
+                <div class="categories-dropdown" id="categories-dropdown">
+                    <div class="category-item">Phát triển</div>
+                    <div class="category-item">Kinh doanh</div>
+                    <div class="category-item">Tài chính & Kế toán</div>
+                    <div class="category-item">IT & Phần mềm</div>
+                    <div class="category-item">Năng suất văn phòng</div>
+                    <div class="category-item">Phát triển cá nhân</div>
+                    <div class="category-item">Thiết kế</div>
+                    <div class="category-item">Marketing</div>
+                    <div class="category-item">Lối sống</div>
+                    <div class="category-item">Nhiếp ảnh & Video</div>
+                    <div class="category-item">Sức khỏe & Thể hình</div>
+                    <div class="category-item">Âm nhạc</div>
+                    <div class="category-item">Giảng dạy & Học thuật</div>
+                </div>
+            </a>
+
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Tìm kiếm khóa học">
+            </div>
+
+            <div class="nav-links">
+                <a href="#" class="nav-link"><span>Udemy Business</span></a>
+                <a href="#" class="nav-link"><span>Dạy trên Udemy</span></a>
+                
+                <button class="icon-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
+
+                <button class="btn">Đăng nhập</button>
+                <button class="btn btn-primary">Đăng ký</button>
+                
+                <button class="icon-btn">
+                    <i class="fas fa-globe globe-icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header đã đăng nhập -->
+    <div class="header hidden" id="header-logged-in">
+        <div class="header-container">
+            <a href="#" class="logo">udemy</a>
+            
+            <a href="#" class="categories-btn" id="categories-btn-logged">
+                <span>Danh mục</span>
+                <i class="fas fa-chevron-down arrow-down"></i>
+                <div class="categories-dropdown" id="categories-dropdown-logged">
+                    <div class="category-item">Phát triển</div>
+                    <div class="category-item">Kinh doanh</div>
+                    <div class="category-item">Tài chính & Kế toán</div>
+                    <div class="category-item">IT & Phần mềm</div>
+                    <div class="category-item">Năng suất văn phòng</div>
+                    <div class="category-item">Phát triển cá nhân</div>
+                    <div class="category-item">Thiết kế</div>
+                    <div class="category-item">Marketing</div>
+                    <div class="category-item">Lối sống</div>
+                    <div class="category-item">Nhiếp ảnh & Video</div>
+                    <div class="category-item">Sức khỏe & Thể hình</div>
+                    <div class="category-item">Âm nhạc</div>
+                    <div class="category-item">Giảng dạy & Học thuật</div>
+                </div>
+            </a>
+
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Tìm kiếm khóa học">
+            </div>
+
+            <div class="nav-links">
+                <a href="#" class="nav-link"><span>Khóa học của tôi</span></a>
+                
+                <button class="icon-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge">2</span>
+                </button>
+
+                <button class="icon-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+
+                <div class="user-menu">
+                    <div class="user-avatar" id="user-avatar">NV</div>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="user-info">
+                            <div class="user-name">Nguyễn Văn A</div>
+                            <div class="user-email">nguyenvana@example.com</div>
+                        </div>
+                        <div class="dropdown-section">
+                            <div class="dropdown-item"><i class="fas fa-play-circle"></i> Khóa học của tôi</div>
+                            <div class="dropdown-item"><i class="fas fa-shopping-cart"></i> Giỏ hàng</div>
+                            <div class="dropdown-item"><i class="fas fa-heart"></i> Danh sách yêu thích</div>
+                            <div class="dropdown-item"><i class="fas fa-chalkboard-teacher"></i> Dạy trên Udemy</div>
+                        </div>
+                        <div class="dropdown-section">
+                            <div class="dropdown-item"><i class="fas fa-bell"></i> Thông báo</div>
+                            <div class="dropdown-item"><i class="fas fa-envelope"></i> Tin nhắn</div>
+                        </div>
+                        <div class="dropdown-section">
+                            <div class="dropdown-item"><i class="fas fa-cog"></i> Cài đặt tài khoản</div>
+                            <div class="dropdown-item"><i class="fas fa-credit-card"></i> Phương thức thanh toán</div>
+                            <div class="dropdown-item"><i class="fas fa-tag"></i> Đăng ký</div>
+                            <div class="dropdown-item"><i class="fas fa-history"></i> Lịch sử mua hàng</div>
+                        </div>
+                        <div class="dropdown-section">
+                            <div class="dropdown-item">
+                                <i class="fas fa-globe globe-icon"></i>
+                                Tiếng Việt
+                            </div>
+                        </div>
+                        <div class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo content -->
+    <div class="demo-content">
+        <h1>Header Udemy Việt Nam</h1>
+        <p>Đây là header hoàn chỉnh với màu sắc chính xác và trải nghiệm người dùng được nâng cấp</p>
+        <button class="toggle-btn" id="toggle-header">Chuyển đổi trạng thái đăng nhập</button>
+    </div>
+
+    <script>
+        // Categories dropdown
+        const categoriesBtn = document.getElementById('categories-btn');
+        const categoriesDropdown = document.getElementById('categories-dropdown');
+        const categoriesBtnLogged = document.getElementById('categories-btn-logged');
+        const categoriesDropdownLogged = document.getElementById('categories-dropdown-logged');
+
+        categoriesBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            categoriesDropdown.classList.toggle('active');
+            categoriesBtn.classList.toggle('active');
+        });
+
+        categoriesBtnLogged.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            categoriesDropdownLogged.classList.toggle('active');
+            categoriesBtnLogged.classList.toggle('active');
+        });
+
+        // User dropdown
+        const userAvatar = document.getElementById('user-avatar');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userAvatar) {
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+            });
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            categoriesDropdown.classList.remove('active');
+            categoriesDropdownLogged.classList.remove('active');
+            categoriesBtn.classList.remove('active');
+            categoriesBtnLogged.classList.remove('active');
+            if (userDropdown) {
+                userDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle between logged in and logged out
+        const headerLoggedOut = document.getElementById('header-logged-out');
+        const headerLoggedIn = document.getElementById('header-logged-in');
+        const toggleBtn = document.getElementById('toggle-header');
+
+        toggleBtn.addEventListener('click', () => {
+            headerLoggedOut.classList.toggle('hidden');
+            headerLoggedIn.classList.toggle('hidden');
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const headers = document.querySelectorAll('.header:not(.hidden)');
+            headers.forEach(header => {
+                if (window.scrollY > 10) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        });
+
+        // Add some sample interaction for buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.classList.contains('btn-primary')) {
+                    alert('Chức năng đăng ký sẽ được thực hiện!');
+                } else {
+                    alert('Chức năng đăng nhập sẽ được thực hiện!');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

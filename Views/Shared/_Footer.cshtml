@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footer Nền tảng E-Learning</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ftr-primary-color: #7C3AED;
+            --ftr-primary-light: #A855F7;
+            --ftr-secondary-color: #8B5CF6;
+            --ftr-accent-color: #F97316;
+            --ftr-text-color: #1F2937;
+            --ftr-text-light: #64748B;
+            --ftr-bg-primary: #FFFFFF;
+            --ftr-bg-secondary: #F8FAFC;
+            --ftr-bg-gradient: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
+            --ftr-border-color: #E2E8F0;
+            --ftr-border-light: #F1F5F9;
+            --ftr-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --ftr-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --ftr-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --ftr-border-radius: 0.5rem;
+            --ftr-border-radius-sm: 0.25rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Phong cách footer */
+        .ftr-footer {
+            background: var(--ftr-bg-primary);
+            border-top: 1px solid var(--ftr-border-light);
+            padding: 3rem 0 1rem;
+            color: var(--ftr-text-color);
+        }
+
+        .ftr-footer-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Newsletter section */
+        .ftr-newsletter {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--ftr-border-light);
+        }
+
+        .ftr-newsletter h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--ftr-text-color);
+            text-transform: uppercase;
+        }
+
+        .ftr-newsletter p {
+            color: var(--ftr-text-light);
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ftr-newsletter-form {
+            display: flex;
+            max-width: 500px;
+            margin: 0 auto;
+            gap: 0.5rem;
+        }
+
+        .ftr-newsletter-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--ftr-border-color);
+            border-radius: var(--ftr-border-radius);
+            font-size: 0.875rem;
+            outline: none;
+            transition: var(--ftr-transition);
+        }
+
+        .ftr-newsletter-input:focus {
+            border-color: var(--ftr-primary-color);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .ftr-newsletter-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--ftr-primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--ftr-border-radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--ftr-transition);
+        }
+
+        .ftr-newsletter-button:hover {
+            background: var(--ftr-primary-light);
+        }
+
+        /* Main footer content */
+        .ftr-footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Cột footer */
+        .ftr-footer-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .ftr-footer-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--ftr-text-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .ftr-footer-title i {
+            margin-right: 0.5rem;
+            color: var(--ftr-primary-color);
+        }
+
+        .ftr-footer-link {
+            color: var(--ftr-text-light);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: var(--ftr-transition);
+            display: flex;
+            align-items: center;
+        }
+
+        .ftr-footer-link i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--ftr-primary-color);
+        }
+
+        .ftr-footer-link:hover {
+            color: var(--ftr-primary-color);
+            transform: translateX(4px);
+        }
+
+        /* Logo và mô tả */
+        .ftr-footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ftr-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .ftr-logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+            border-radius: var(--ftr-border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .ftr-logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ftr-footer-description {
+            font-size: 0.875rem;
+            color: var(--ftr-text-light);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Mạng xã hội */
+        .ftr-social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .ftr-social-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--ftr-bg-secondary);
+            border-radius: 50%;
+            color: var(--ftr-text-light);
+            transition: var(--ftr-transition);
+            font-size: 1rem;
+        }
+
+        .ftr-social-icon:hover {
+            background: var(--ftr-primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Bản quyền */
+        .ftr-footer-bottom {
+            border-top: 1px solid var(--ftr-border-light);
+            padding-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--ftr-text-light);
+        }
+
+        .ftr-footer-bottom a {
+            color: var(--ftr-primary-color);
+            text-decoration: none;
+            transition: var(--ftr-transition);
+        }
+
+        .ftr-footer-bottom a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .ftr-footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .ftr-newsletter-form {
+                flex-direction: column;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .ftr-footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Chân trang -->
+    <footer class="ftr-footer">
+        <div class="ftr-footer-container">
+            <!-- Newsletter Section -->
+            <div class="ftr-newsletter">
+                <h2>SUBSCRIBE TO OUR NEWSLETTER</h2>
+                <p>Learn learnable: at amet.comestrar.adipacings.tk</p>
+                <div class="ftr-newsletter-form">
+                    <input type="email" class="ftr-newsletter-input" placeholder="Your email address...">
+                    <button class="ftr-newsletter-button">Subscribe</button>
+                </div>
+            </div>
+
+            <!-- Main footer content -->
+            <div class="ftr-footer-content">
+                <!-- Information Column -->
+                <div class="ftr-footer-column">
+                    <h3 class="ftr-footer-title"><i class="fas fa-building"></i> Information</h3>
+                    <div class="ftr-logo">
+                        <div class="ftr-logo-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <div class="ftr-logo-text">LearnX</div>
+                    </div>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Our Company</a>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> About Us</a>
+                </div>
+
+                <!-- Helpful Links Column -->
+                <div class="ftr-footer-column">
+                    <h3 class="ftr-footer-title"><i class="fas fa-link"></i> Helpful Links</h3>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Services</a>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Support</a>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Terms & Conditions</a>
+                </div>
+
+                <!-- Navigation Column -->
+                <div class="ftr-footer-column">
+                    <h3 class="ftr-footer-title"><i class="fas fa-compass"></i> Navigation</h3>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Home</a>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Absent</a>
+                    <a href="#" class="ftr-footer-link"><i class="fas fa-chevron-right"></i> Contact</a>
+                </div>
+
+                <!-- View Column -->
+                <div class="ftr-footer-column">
+                    <h3 class="ftr-footer-title"><i class="fas fa-eye"></i> View</h3>
+                    <p class="ftr-footer-description">Learn learnable: at amet.comestrar.adipacings.tk</p>
+                    <div class="ftr-social-links">
+                        <a href="#" class="ftr-social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="ftr-social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="ftr-social-icon"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="ftr-social-icon"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bản quyền -->
+            <div class="ftr-footer-bottom">
+                <p>&copy; 2025 LearnX. Mọi quyền được bảo lưu. <a href="#">Chính sách bảo mật</a> | <a href="#">Điều khoản dịch vụ</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Chức năng đăng ký newsletter
+        document.querySelector('.ftr-newsletter-button').addEventListener('click', function() {
+            const email = document.querySelector('.ftr-newsletter-input').value.trim();
+            
+            if (email) {
+                if (!validateEmail(email)) {
+                    alert('Vui lòng nhập địa chỉ email hợp lệ!');
+                    return;
+                }
+                
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đăng ký...';
+                setTimeout(() => {
+                    alert('Cảm ơn bạn đã đăng ký nhận bản tin của chúng tôi!');
+                    this.innerHTML = 'Subscribe';
+                    document.querySelector('.ftr-newsletter-input').value = '';
+                }, 1000);
+            } else {
+                alert('Vui lòng nhập địa chỉ email của bạn!');
+            }
+        });
+
+        function validateEmail(email) {
+            const re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return re.test(email);
+        }
+    </script>
+</body>
+</html>
