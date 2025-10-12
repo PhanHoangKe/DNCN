@@ -13,7 +13,6 @@ namespace EduFlex.Areas.Admin.Controllers
     public class UsersController : Controller
     {
         private readonly DataContext _context;
-
         public UsersController(DataContext context)
         {
             _context = context;
