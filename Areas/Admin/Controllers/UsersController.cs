@@ -129,28 +129,28 @@ namespace EduFlex.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-[HttpGet]
-public IActionResult Delete(int id)
-{
-    var user = _context.Users
-        .Include(u => u.Role)
-        .FirstOrDefault(u => u.UserId == id);
-    if (user == null) return NotFound();
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var user = _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.UserId == id);
+            if (user == null) return NotFound();
 
-    return View(user); 
-}
+            return View(user);
+        }
 
-[HttpPost, ActionName("Delete")]
-[ValidateAntiForgeryToken]
-public IActionResult DeleteConfirmed(int id)
-{
-    var user = _context.Users.Find(id);
-    if (user == null) return NotFound();
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound();
 
-    _context.Users.Remove(user);
-    _context.SaveChanges();
+            _context.Users.Remove(user);
+            _context.SaveChanges();
 
-    return RedirectToAction(nameof(Index));
-}
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

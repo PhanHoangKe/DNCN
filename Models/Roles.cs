@@ -9,7 +9,7 @@ namespace EduFlex.Areas.Admin.Models
     {
         [Key]
         public int RoleId { get; set; }
-        public string RoleName { get; set; }
+        public string? RoleName { get; set; }
         public string? Description { get; set; }
         public ICollection<Users>? Users { get; set; }
     }
