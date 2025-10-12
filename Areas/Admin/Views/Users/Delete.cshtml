@@ -1,0 +1,86 @@
+@model EduFlex.Models.Users
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Thông Tin Tài Khoản</h5>
+
+                        <form asp-action="Delete" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="UserId" />
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label d-block">Avatar</label>
+                                @if (!string.IsNullOrEmpty(Model.Avatar))
+                                {
+                                    <img src="@Model.Avatar" 
+                                         alt="Avatar @Model.FullName" 
+                                         class="rounded-circle mb-2" 
+                                         style="width:100px; height:100px; object-fit:cover;"
+                                         onerror="this.src='/uploads/avatars/default.png';" />
+                                }
+                                else
+                                {
+                                    <img src="/uploads/avatars/default.png" 
+                                         alt="Default Avatar" 
+                                         class="rounded-circle mb-2" 
+                                         style="width:100px; height:100px; object-fit:cover;" />
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Họ và tên</label>
+                                <input class="form-control" value="@Model.FullName" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input class="form-control" value="@Model.Email" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Vai trò</label>
+                                <input class="form-control" value="@Model.Role?.RoleName ?? "Chưa có"" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <input class="form-control" value="@(Model.IsActive ? "Hoạt động" : "Khóa")" readonly />
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Xác nhận xóa
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary ms-2">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+    .form-control[readonly] {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+    img.rounded-circle {
+        border: 2px solid #dee2e6;
+    }
+</style>
