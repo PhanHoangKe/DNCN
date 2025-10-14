@@ -12,8 +12,8 @@ namespace EduFlex.Areas.Admin.Controllers
     [Area("Admin")]
     public class UsersController : Controller
     {
-        private readonly DataContext _context;
-        public UsersController(DataContext context)
+        private readonly EduFlexContext _context;
+        public UsersController(EduFlexContext context)
         {
             _context = context;
         }
@@ -36,7 +36,7 @@ namespace EduFlex.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Users users, IFormFile? avatarFile)
+        public IActionResult Create(User users, IFormFile? avatarFile)
         {
             if (!ModelState.IsValid)
             {
@@ -83,7 +83,7 @@ namespace EduFlex.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Users updatedUser, IFormFile? avatarFile)
+        public IActionResult Edit(int id, User updatedUser, IFormFile? avatarFile)
         {
             var user = _context.Users.Find(id);
             if (user == null) return NotFound();

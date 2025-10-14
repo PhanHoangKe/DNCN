@@ -10,8 +10,8 @@ namespace EduFlex.Areas.Admin.Components
     [ViewComponent(Name = "AdminMenu")]
     public class AdminMenuComponent : ViewComponent
     {
-        private readonly DataContext _context;
-        public AdminMenuComponent(DataContext context)
+        private readonly EduFlexContext _context;
+        public AdminMenuComponent(EduFlexContext context)
         {
             _context = context;
         }

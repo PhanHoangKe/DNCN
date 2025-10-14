@@ -286,14 +286,24 @@ INSERT INTO [dbo].[SystemAnnouncements] ([Title], [Content], [Type], [IsActive],
 ('Mobile App Update Available', 'Download the latest version of our mobile app for improved performance and new features.', 'App', 1, '2024-02-05 00:00:00', '2024-12-31 23:59:59', 1, '2024-02-05 00:00:00');
 
 -- 33. AdminMenu (no dependencies)
+bi bi-speedometer2
+bi bi-people
+bi bi-journal-bookmark
+bi bi-cart-check
+bi bi-bar-chart
+bi bi-person-gear
+bi bi-shield-lock
+bi bi-journal-text
+bi bi-tags
+bi bi-bag-check
 INSERT INTO [dbo].[AdminMenu] ([ItemName], [ItemLevel], [ParentLevel], [ItemOrder], [IsActive], [ItemTarget], [AreaName], [ControllerName], [ActionName], [Icon], [IdName], [CreatedAt], [MenuType]) VALUES
-('Dashboard', 1, 0, 1, 1, '_self', 'Admin', 'Dashboard', 'Index', 'fas fa-tachometer-alt', 'dashboard', '2024-01-01 00:00:00', 'Main'),
-('Users', 1, 0, 2, 1, '_self', 'Admin', 'Users', 'Index', 'fas fa-users', 'users', '2024-01-01 00:00:00', 'Main'),
-('Courses', 1, 0, 3, 1, '_self', 'Admin', 'Courses', 'Index', 'fas fa-book', 'courses', '2024-01-01 00:00:00', 'Main'),
-('Orders', 1, 0, 4, 1, '_self', 'Admin', 'Orders', 'Index', 'fas fa-shopping-cart', 'orders', '2024-01-01 00:00:00', 'Main'),
-('Reports', 1, 0, 5, 1, '_self', 'Admin', 'Reports', 'Index', 'fas fa-chart-bar', 'reports', '2024-01-01 00:00:00', 'Main'),
-('User Management', 2, 2, 1, 1, '_self', 'Admin', 'Users', 'Index', 'fas fa-user-cog', 'user-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Role Management', 2, 2, 2, 1, '_self', 'Admin', 'Roles', 'Index', 'fas fa-user-tag', 'role-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Course Management', 2, 3, 1, 1, '_self', 'Admin', 'Courses', 'Index', 'fas fa-book-open', 'course-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Category Management', 2, 3, 2, 1, '_self', 'Admin', 'Categories', 'Index', 'fas fa-tags', 'category-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Order Management', 2, 4, 1, 1, '_self', 'Admin', 'Orders', 'Index', 'fas fa-shopping-bag', 'order-mgmt', '2024-01-01 00:00:00', 'Sub');
+('Dashboard', 1, 0, 1, 1, '_self', 'Admin', 'Dashboard', 'Index', 'bi bi-speedometer2', 'dashboard', '2024-01-01 00:00:00', 'Main'),
+('Users', 1, 0, 2, 1, '_self', 'Admin', 'Users', 'Users', 'bi bi-people', 'users', '2024-01-01 00:00:00', 'Main'),
+('Courses', 1, 0, 3, 1, '_self', 'Admin', 'Courses', 'Index', 'bi bi-journal-bookmark', 'courses', '2024-01-01 00:00:00', 'Main'),
+('Orders', 1, 0, 4, 1, '_self', 'Admin', 'Orders', 'Index', 'bi bi-cart-check', 'orders', '2024-01-01 00:00:00', 'Main'),
+('Reports', 1, 0, 5, 1, '_self', 'Admin', 'Reports', 'Index', 'bi bi-bar-chart', 'reports', '2024-01-01 00:00:00', 'Main'),
+('User Management', 2, 2, 1, 1, '_self', 'Admin', 'Users', 'Index', 'bi bi-person-gear', 'user-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Role Management', 2, 2, 2, 1, '_self', 'Admin', 'Roles', 'Index', 'bi bi-shield-lock', 'role-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Course Management', 2, 3, 1, 1, '_self', 'Admin', 'Courses', 'Index', 'bi bi-journal-text', 'course-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Category Management', 2, 3, 2, 1, '_self', 'Admin', 'Categories', 'Index', 'bi bi-tags', 'category-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Order Management', 2, 4, 1, 1, '_self', 'Admin', 'Orders', 'Index', 'bi bi-bag-check', 'order-mgmt', '2024-01-01 00:00:00', 'Sub');

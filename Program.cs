@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Đăng ký DbContext
-builder.Services.AddDbContext<DataContext>(options =>
+builder.Services.AddDbContext<EduFlexContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
