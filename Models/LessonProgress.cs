@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class LessonProgress
 {
+    [Key]
     public int ProgressId { get; set; }
 
     public int EnrollmentId { get; set; }

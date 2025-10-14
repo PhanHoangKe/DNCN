@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class CourseLevel
 {
+    [Key]
     public int LevelId { get; set; }
 
     public string LevelName { get; set; } = null!;

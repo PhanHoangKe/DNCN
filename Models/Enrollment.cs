@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace EduFlex.Models;
 
 public partial class Enrollment
 {
+    [Key]
     public int EnrollmentId { get; set; }
 
     public int UserId { get; set; }
@@ -27,5 +30,5 @@ public partial class Enrollment
 
     public virtual ICollection<LessonProgress> LessonProgresses { get; set; } = new List<LessonProgress>();
 
-    public virtual User User { get; set; } = null!;
+    public virtual Users Users { get; set; } = null!;
 }

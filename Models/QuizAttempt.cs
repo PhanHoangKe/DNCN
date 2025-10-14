@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class QuizAttempt
 {
+    [Key]
     public int AttemptId { get; set; }
 
     public int QuizId { get; set; }
@@ -29,5 +31,5 @@ public partial class QuizAttempt
 
     public virtual ICollection<StudentAnswer> StudentAnswers { get; set; } = new List<StudentAnswer>();
 
-    public virtual User User { get; set; } = null!;
+    public virtual Users Users { get; set; } = null!;
 }

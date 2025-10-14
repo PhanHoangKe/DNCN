@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class SystemAnnouncement
 {
+    [Key]
     public int AnnouncementId { get; set; }
 
     public string Title { get; set; } = null!;
@@ -23,5 +25,5 @@ public partial class SystemAnnouncement
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual User CreatedByNavigation { get; set; } = null!;
+    public virtual Users CreatedByNavigation { get; set; } = null!;
 }

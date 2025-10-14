@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class Notification
 {
+    [Key]
     public int NotificationId { get; set; }
 
     public int UserId { get; set; }
@@ -21,5 +23,5 @@ public partial class Notification
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual User User { get; set; } = null!;
+    public virtual Users Users { get; set; } = null!;
 }

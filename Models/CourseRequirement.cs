@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class CourseRequirement
 {
+    [Key]
     public int RequirementId { get; set; }
 
     public int CourseId { get; set; }

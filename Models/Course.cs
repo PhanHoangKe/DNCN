@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class Course
 {
+    [Key]
     public int CourseId { get; set; }
 
     public string CourseTitle { get; set; } = null!;
@@ -57,11 +59,11 @@ public partial class Course
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual User? ApprovedByNavigation { get; set; }
+    public virtual Users? ApprovedByNavigation { get; set; }
 
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 
-    public virtual Category Category { get; set; } = null!;
+    public virtual Categories Categories { get; set; } = null!;
 
     public virtual ICollection<CourseObjective> CourseObjectives { get; set; } = new List<CourseObjective>();
 
@@ -73,7 +75,7 @@ public partial class Course
 
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
-    public virtual User Instructor { get; set; } = null!;
+    public virtual Users Instructor { get; set; } = null!;
 
     public virtual CourseLevel Level { get; set; } = null!;
 
