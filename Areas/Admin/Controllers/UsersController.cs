@@ -89,18 +89,15 @@ namespace EduFlex.Areas.Admin.Controllers
             var user = _context.Users.Find(id);
             if (user == null) return NotFound();
 
-            // Nếu mật khẩu để trống, tạm gán mật khẩu cũ vào ModelState để qua validate
             if (string.IsNullOrWhiteSpace(updatedUser.PasswordHash))
                 updatedUser.PasswordHash = user.PasswordHash;
 
-            // Kiểm tra ModelState sau khi gán
             if (!ModelState.IsValid)
             {
                 ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName", updatedUser.RoleId);
                 return View(updatedUser);
             }
 
-            // Cập nhật các trường
             user.FullName = updatedUser.FullName;
             user.Bio = updatedUser.Bio;
             user.Email = updatedUser.Email;
@@ -109,11 +106,9 @@ namespace EduFlex.Areas.Admin.Controllers
             user.IsActive = updatedUser.IsActive;
             user.UpdatedAt = DateTime.Now;
 
-            // Nếu nhập mật khẩu mới, hash lại
             if (!string.IsNullOrWhiteSpace(updatedUser.PasswordHash) && updatedUser.PasswordHash != user.PasswordHash)
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatedUser.PasswordHash);
 
-            // Upload avatar mới nếu có
             if (avatarFile != null && avatarFile.Length > 0)
             {
                 var fileName = Guid.NewGuid() + Path.GetExtension(avatarFile.FileName);
@@ -129,28 +124,28 @@ namespace EduFlex.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-[HttpGet]
-public IActionResult Delete(int id)
-{
-    var user = _context.Users
-        .Include(u => u.Role)
-        .FirstOrDefault(u => u.UserId == id);
-    if (user == null) return NotFound();
-
-    return View(user); 
-}
-
-[HttpPost, ActionName("Delete")]
-[ValidateAntiForgeryToken]
-public IActionResult DeleteConfirmed(int id)
-{
-    var user = _context.Users.Find(id);
-    if (user == null) return NotFound();
-
-    _context.Users.Remove(user);
-    _context.SaveChanges();
-
-    return RedirectToAction(nameof(Index));
-}
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var user = _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.UserId == id);
+            if (user == null) return NotFound();
+        
+            return View(user); 
+        }
+        
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound();
+        
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+        
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
