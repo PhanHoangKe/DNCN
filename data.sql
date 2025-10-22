@@ -34,11 +34,11 @@ INSERT INTO [dbo].[Users] ([Email], [PasswordHash], [FullName], [PhoneNumber], [
 
 -- 5. Categories (self-referencing, insert parent categories first)
 INSERT INTO [dbo].[Categories] ([CategoryName], [Description], [Icon], [ParentCategoryId], [IsActive], [CreatedAt]) VALUES
-('Programming', 'Software development and coding courses', 'code-icon.png', NULL, 1, '2024-01-01 00:00:00'),
-('Design', 'UI/UX and graphic design courses', 'design-icon.png', NULL, 1, '2024-01-01 00:00:00'),
-('Business', 'Business and entrepreneurship courses', 'business-icon.png', NULL, 1, '2024-01-01 00:00:00'),
-('Web Development', 'Frontend and backend web development', 'web-icon.png', 1, 1, '2024-01-01 00:00:00'),
-('Mobile Development', 'iOS and Android app development', 'mobile-icon.png', 1, 1, '2024-01-01 00:00:00');
+('Programming', 'Software development and coding courses', 'bi bi-code-slash', NULL, 1, '2024-01-01 00:00:00'),
+('Design', 'UI/UX and graphic design courses', 'bi bi-palette', NULL, 1, '2024-01-01 00:00:00'),
+('Business', 'Business and entrepreneurship courses', 'bi bi-briefcase', NULL, 1, '2024-01-01 00:00:00'),
+('Web Development', 'Frontend and backend web development', 'bi bi-window-stack', 1, 1, '2024-01-01 00:00:00'),
+('Mobile Development', 'iOS and Android app development', 'bi bi-phone', 1, 1, '2024-01-01 00:00:00');
 
 -- 6. Courses (depends on Users, Categories, CourseLevels)
 INSERT INTO [dbo].[Courses] ([CourseTitle], [Slug], [ShortDescription], [FullDescription], [ThumbnailUrl], [PreviewVideoUrl], [Price], [IsFree], [DiscountPrice], [InstructorId], [CategoryId], [LevelId], [Language], [Duration], [TotalLessons], [IsPublished], [IsApproved], [ApprovedBy], [ApprovedAt], [ViewCount], [EnrollmentCount], [AverageRating], [TotalRatings], [CreatedAt], [UpdatedAt]) VALUES
@@ -286,24 +286,14 @@ INSERT INTO [dbo].[SystemAnnouncements] ([Title], [Content], [Type], [IsActive],
 ('Mobile App Update Available', 'Download the latest version of our mobile app for improved performance and new features.', 'App', 1, '2024-02-05 00:00:00', '2024-12-31 23:59:59', 1, '2024-02-05 00:00:00');
 
 -- 33. AdminMenu (no dependencies)
-bi bi-speedometer2
-bi bi-people
-bi bi-journal-bookmark
-bi bi-cart-check
-bi bi-bar-chart
-bi bi-person-gear
-bi bi-shield-lock
-bi bi-journal-text
-bi bi-tags
-bi bi-bag-check
 INSERT INTO [dbo].[AdminMenu] ([ItemName], [ItemLevel], [ParentLevel], [ItemOrder], [IsActive], [ItemTarget], [AreaName], [ControllerName], [ActionName], [Icon], [IdName], [CreatedAt], [MenuType]) VALUES
-('Dashboard', 1, 0, 1, 1, '_self', 'Admin', 'Dashboard', 'Index', 'bi bi-speedometer2', 'dashboard', '2024-01-01 00:00:00', 'Main'),
-('Users', 1, 0, 2, 1, '_self', 'Admin', 'Users', 'Users', 'bi bi-people', 'users', '2024-01-01 00:00:00', 'Main'),
-('Courses', 1, 0, 3, 1, '_self', 'Admin', 'Courses', 'Index', 'bi bi-journal-bookmark', 'courses', '2024-01-01 00:00:00', 'Main'),
-('Orders', 1, 0, 4, 1, '_self', 'Admin', 'Orders', 'Index', 'bi bi-cart-check', 'orders', '2024-01-01 00:00:00', 'Main'),
-('Reports', 1, 0, 5, 1, '_self', 'Admin', 'Reports', 'Index', 'bi bi-bar-chart', 'reports', '2024-01-01 00:00:00', 'Main'),
-('User Management', 2, 2, 1, 1, '_self', 'Admin', 'Users', 'Index', 'bi bi-person-gear', 'user-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Role Management', 2, 2, 2, 1, '_self', 'Admin', 'Roles', 'Index', 'bi bi-shield-lock', 'role-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Course Management', 2, 3, 1, 1, '_self', 'Admin', 'Courses', 'Index', 'bi bi-journal-text', 'course-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Category Management', 2, 3, 2, 1, '_self', 'Admin', 'Categories', 'Index', 'bi bi-tags', 'category-mgmt', '2024-01-01 00:00:00', 'Sub'),
-('Order Management', 2, 4, 1, 1, '_self', 'Admin', 'Orders', 'Index', 'bi bi-bag-check', 'order-mgmt', '2024-01-01 00:00:00', 'Sub');
+('Dashboard', 1, 0, 1, 1, '_self', 'Admin', 'Dashboard', 'Index', '/uploads/categories/default.jpg', 'dashboard', '2024-01-01 00:00:00', 'Main'),
+('Users', 1, 0, 2, 1, '_self', 'Admin', 'Users', 'Users', '/uploads/categories/default.jpg', 'users', '2024-01-01 00:00:00', 'Main'),
+('Courses', 1, 0, 3, 1, '_self', 'Admin', 'Courses', 'Index', '/uploads/categories/default.jpg', 'courses', '2024-01-01 00:00:00', 'Main'),
+('Orders', 1, 0, 4, 1, '_self', 'Admin', 'Orders', 'Index', '/uploads/categories/default.jpg', 'orders', '2024-01-01 00:00:00', 'Main'),
+('Reports', 1, 0, 5, 1, '_self', 'Admin', 'Reports', 'Index', '/uploads/categories/default.jpg', 'reports', '2024-01-01 00:00:00', 'Main'),
+('User Management', 2, 2, 1, 1, '_self', 'Admin', 'Users', 'Index', '/uploads/categories/default.jpg', 'user-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Role Management', 2, 2, 2, 1, '_self', 'Admin', 'Roles', 'Index', '/uploads/categories/default.jpg', 'role-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Course Management', 2, 3, 1, 1, '_self', 'Admin', 'Courses', 'Index', '/uploads/categories/default.jpg', 'course-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Category Management', 2, 3, 2, 1, '_self', 'Admin', 'Categories', 'Index', '/uploads/categories/default.jpg', 'category-mgmt', '2024-01-01 00:00:00', 'Sub'),
+('Order Management', 2, 4, 1, 1, '_self', 'Admin', 'Orders', 'Index', '/uploads/categories/default.jpg', 'order-mgmt', '2024-01-01 00:00:00', 'Sub');

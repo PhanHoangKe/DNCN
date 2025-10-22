@@ -281,39 +281,107 @@
   /**
    * Initiate Datatables
    */
-  const datatables = select('.datatable', true)
-  datatables.forEach(datatable => {
-    new simpleDatatables.DataTable(datatable, {
-      perPageSelect: [5, 10, 15, ["All", -1]],
-      columns: [{
-          select: 2,
-          sortSequence: ["desc", "asc"]
-        },
-        {
-          select: 3,
-          sortSequence: ["desc"]
-        },
-        {
-          select: 4,
-          cellClass: "green",
-          headerClass: "red"
-        }
-      ]
+  let datatableInstances = [];
+  const initDatatables = () => {
+    // Clean up existing instances first
+    datatableInstances.forEach(instance => {
+      if (instance && typeof instance.destroy === 'function') {
+        instance.destroy();
+      }
     });
-  })
+    datatableInstances = [];
+
+    const datatables = select('.datatable', true)
+    datatables.forEach(datatable => {
+      const instance = new simpleDatatables.DataTable(datatable, {
+        perPageSelect: [5, 10, 15, ["All", -1]],
+        columns: [{
+            select: 2,
+            sortSequence: ["desc", "asc"]
+          },
+          {
+            select: 3,
+            sortSequence: ["desc"]
+          },
+          {
+            select: 4,
+            cellClass: "green",
+            headerClass: "red"
+          }
+        ]
+      });
+      datatableInstances.push(instance);
+    });
+  }
+
+  // Initialize datatables on page load with delay to ensure DOM is ready
+  // Only initialize if there are datatable elements on the page
+  const initDatatablesIfNeeded = () => {
+    const datatableElements = select('.datatable', true);
+    if (datatableElements.length > 0) {
+      initDatatables();
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDatatablesIfNeeded);
+  } else {
+    // DOM is already ready
+    setTimeout(initDatatablesIfNeeded, 100);
+  }
+
+  // Register cleanup functions
+  if (window.registerCleanup) {
+    // Register datatables cleanup
+    window.registerCleanup('datatables', () => {
+      datatableInstances.forEach(instance => {
+        if (instance && typeof instance.destroy === 'function') {
+          instance.destroy();
+        }
+      });
+      datatableInstances = [];
+    });
+
+    // Register observer cleanup
+    window.registerCleanup('observers', () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+      }
+    });
+
+    // Register tooltips cleanup
+    window.registerCleanup('eventListeners', () => {
+      if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+          const tooltipInstance = bootstrap.Tooltip.getInstance(tooltip);
+          if (tooltipInstance) {
+            tooltipInstance.dispose();
+          }
+        });
+      }
+    });
+  }
 
   /**
    * Autoresize echart charts
    */
+  let resizeObserver = null;
   const mainContainer = select('#main');
   if (mainContainer) {
     setTimeout(() => {
-      new ResizeObserver(function() {
+      resizeObserver = new ResizeObserver(function() {
         select('.echart', true).forEach(getEchart => {
-          echarts.getInstanceByDom(getEchart).resize();
+          const chartInstance = echarts.getInstanceByDom(getEchart);
+          if (chartInstance) {
+            chartInstance.resize();
+          }
         })
-      }).observe(mainContainer);
+      });
+      resizeObserver.observe(mainContainer);
     }, 200);
   }
+
 
 })();
