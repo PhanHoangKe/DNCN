@@ -63,8 +63,9 @@
                             </div>
 
                             <div class="form-check mb-3">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                                <label asp-for="IsActive" class="form-check-label">Kích hoạt tài khoản</label>
+                                <input name="IsActive" class="form-check-input" type="checkbox" value="true" @(Model?.IsActive == true ? "checked" : "") />
+                                <input type="hidden" name="IsActive" value="false" />
+                                <label class="form-check-label">Kích hoạt tài khoản</label>
                             </div>
 
                             <div class="text-end">

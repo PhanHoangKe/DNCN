@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EduFlex.Areas.Admin.Controllers
 {
@@ -13,9 +14,12 @@ namespace EduFlex.Areas.Admin.Controllers
     public class CategoriesController : Controller
     {
         private readonly EduFlexContext _context;
-        public CategoriesController(EduFlexContext context)
+        private readonly ILogger<CategoriesController> _logger;
+        
+        public CategoriesController(EduFlexContext context, ILogger<CategoriesController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -136,31 +140,31 @@ namespace EduFlex.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id, bool? deleteRelatedCourses = false)
         {
-            Console.WriteLine($"DeleteConfirmed called with id: {id}, deleteRelatedCourses: {deleteRelatedCourses}");
+            _logger.LogInformation("DeleteConfirmed called with id: {CategoryId}, deleteRelatedCourses: {DeleteRelatedCourses}", id, deleteRelatedCourses);
             
             var category = _context.Categories.Find(id);
             if (category == null) 
             {
-                Console.WriteLine("Category not found");
+                _logger.LogWarning("Category with id {CategoryId} not found", id);
                 return NotFound();
             }
 
             // Kiểm tra xem có danh mục con không
             var hasChildCategories = _context.Categories.Any(c => c.ParentCategoryId == id);
-            Console.WriteLine($"Has child categories: {hasChildCategories}");
+            _logger.LogInformation("Has child categories: {HasChildCategories}", hasChildCategories);
             if (hasChildCategories)
             {
-                Console.WriteLine("Cannot delete - has child categories");
+                _logger.LogWarning("Cannot delete category {CategoryId} - has child categories", id);
                 TempData["Error"] = "Không thể xóa danh mục này vì còn có danh mục con!";
                 return RedirectToAction(nameof(Index));
             }
 
             // Kiểm tra xem có khóa học nào thuộc danh mục này không
             var relatedCourses = _context.Courses.Where(c => c.CategoryId == id).ToList();
-            Console.WriteLine($"Related courses count: {relatedCourses.Count}, deleteRelatedCourses: {deleteRelatedCourses}");
+            _logger.LogInformation("Related courses count: {RelatedCoursesCount}, deleteRelatedCourses: {DeleteRelatedCourses}", relatedCourses.Count, deleteRelatedCourses);
             if (relatedCourses.Any() && deleteRelatedCourses != true)
             {
-                Console.WriteLine("Cannot delete - has related courses but not confirmed");
+                _logger.LogWarning("Cannot delete category {CategoryId} - has related courses but not confirmed", id);
                 TempData["Error"] = "Không thể xóa danh mục này vì còn có khóa học thuộc danh mục này!";
                 return RedirectToAction(nameof(Index));
             }
@@ -168,7 +172,7 @@ namespace EduFlex.Areas.Admin.Controllers
             // Nếu có khóa học liên quan và người dùng xác nhận xóa
             if (relatedCourses.Any() && deleteRelatedCourses == true)
             {
-                Console.WriteLine("Deleting related courses and all related data...");
+                _logger.LogInformation("Deleting related courses and all related data for category {CategoryId}", id);
                 
                 try
                 {
@@ -176,125 +180,154 @@ namespace EduFlex.Areas.Admin.Controllers
                     {
                         try
                         {
-                            // Sử dụng raw SQL để xóa tất cả dữ liệu liên quan
-                            var courseIds = string.Join(",", relatedCourses.Select(c => c.CourseId));
+                            var courseIds = relatedCourses.Select(c => c.CourseId).ToList();
                             
-                            Console.WriteLine($"Deleting all related data for courses: {courseIds}");
+                            _logger.LogInformation("Deleting all related data for courses: {CourseIds}", string.Join(",", courseIds));
                             
-                            // Xóa CartItems
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM CartItems WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted cart items for courses: {courseIds}");
+                            // Xóa dữ liệu liên quan theo thứ tự đúng (từ bảng con đến bảng cha)
+                            // 1. Xóa StudentAnswers (cần LessonId từ Lessons)
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE sa FROM StudentAnswers sa 
+                                INNER JOIN QuizAttempts qa ON sa.AttemptId = qa.AttemptId
+                                INNER JOIN Quizzes q ON qa.QuizId = q.QuizId
+                                INNER JOIN Lessons l ON q.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted StudentAnswers");
                             
-                            // Xóa OrderDetails
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM OrderDetails WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted order details for courses: {courseIds}");
+                            // 2. Xóa QuizAttempts (cần QuizId từ Quizzes)
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE qa FROM QuizAttempts qa 
+                                INNER JOIN Quizzes q ON qa.QuizId = q.QuizId
+                                INNER JOIN Lessons l ON q.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted QuizAttempts");
                             
-                            // Xóa Enrollments
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM Enrollments WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted enrollments for courses: {courseIds}");
+                            // 3. Xóa LessonComments
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE lc FROM LessonComments lc 
+                                INNER JOIN Lessons l ON lc.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted LessonComments");
                             
-                            // Xóa CourseReviews
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM CourseReviews WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted course reviews for courses: {courseIds}");
+                            // 4. Xóa LessonProgresses (cần EnrollmentId, không phải LessonId)
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE lp FROM LessonProgresses lp 
+                                INNER JOIN Enrollments e ON lp.EnrollmentId = e.EnrollmentId
+                                WHERE e.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted LessonProgresses");
                             
-                            // Xóa CourseViews
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM CourseViews WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted course views for courses: {courseIds}");
+                            // 5. Xóa LessonAttachments
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE la FROM LessonAttachments la 
+                                INNER JOIN Lessons l ON la.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted LessonAttachments");
                             
-                            // Xóa QnAs
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM QnAs WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted QnAs for courses: {courseIds}");
+                            // 6. Xóa Questions và Answers
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE a FROM Answers a
+                                INNER JOIN Questions q ON a.QuestionId = q.QuestionId
+                                INNER JOIN Quizzes qu ON q.QuizId = qu.QuizId
+                                INNER JOIN Lessons l ON qu.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted Answers");
                             
-                            // Xóa CourseObjectives
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM CourseObjectives WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted course objectives for courses: {courseIds}");
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE q FROM Questions q
+                                INNER JOIN Quizzes qu ON q.QuizId = qu.QuizId
+                                INNER JOIN Lessons l ON qu.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted Questions");
                             
-                            // Xóa CourseRequirements
-                            _context.Database.ExecuteSqlRaw($"DELETE FROM CourseRequirements WHERE CourseId IN ({courseIds})");
-                            Console.WriteLine($"Deleted course requirements for courses: {courseIds}");
+                            // 7. Xóa Quizzes
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE qu FROM Quizzes qu
+                                INNER JOIN Lessons l ON qu.LessonId = l.LessonId 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted Quizzes");
                             
-                    // Xóa Sections và tất cả dữ liệu con của nó
-                    _context.Database.ExecuteSqlRaw($@"
-                        DELETE sa FROM StudentAnswers sa 
-                        INNER JOIN Lessons l ON sa.LessonId = l.LessonId 
-                        INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                        WHERE s.CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted StudentAnswers");
-                    
-                    _context.Database.ExecuteSqlRaw($@"
-                        DELETE qa FROM QuizAttempts qa 
-                        INNER JOIN Lessons l ON qa.LessonId = l.LessonId 
-                        INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                        WHERE s.CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted QuizAttempts");
-                    
-                    _context.Database.ExecuteSqlRaw($@"
-                        DELETE lc FROM LessonComments lc 
-                        INNER JOIN Lessons l ON lc.LessonId = l.LessonId 
-                        INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                        WHERE s.CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted LessonComments");
-                    
-                    _context.Database.ExecuteSqlRaw($@"
-                        DELETE lp FROM LessonProgresses lp 
-                        INNER JOIN Lessons l ON lp.LessonId = l.LessonId 
-                        INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                        WHERE s.CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted LessonProgresses");
-                    
-                    _context.Database.ExecuteSqlRaw($@"
-                        DELETE la FROM LessonAttachments la 
-                        INNER JOIN Lessons l ON la.LessonId = l.LessonId 
-                        INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                        WHERE s.CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted LessonAttachments");
-                    
-                    _context.Database.ExecuteSqlRaw($@"
-                        DELETE l FROM Lessons l 
-                        INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                        WHERE s.CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted Lessons");
-                    
-                    _context.Database.ExecuteSqlRaw($"DELETE FROM Sections WHERE CourseId IN ({courseIds})");
-                    Console.WriteLine("Deleted Sections");
+                            // 8. Xóa Lessons
+                            _context.Database.ExecuteSqlRaw(@"
+                                DELETE l FROM Lessons l 
+                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
+                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted Lessons");
                             
-                            // Cuối cùng xóa các khóa học
+                            // 9. Xóa Sections
+                            _context.Database.ExecuteSqlRaw("DELETE FROM Sections WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted Sections");
+                            
+                            // 10. Xóa các bảng liên quan trực tiếp đến Course
+                            _context.Database.ExecuteSqlRaw("DELETE FROM CartItems WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted CartItems");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM OrderDetails WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted OrderDetails");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM Enrollments WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted Enrollments");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseReviews WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted CourseReviews");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseViews WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted CourseViews");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM QnAs WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted QnAs");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM QnAAnswers WHERE QnAId IN (SELECT QnAId FROM QnAs WHERE CourseId IN ({0}))", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted QnAAnswers");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseObjectives WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted CourseObjectives");
+                            
+                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseRequirements WHERE CourseId IN ({0})", string.Join(",", courseIds));
+                            _logger.LogInformation("Deleted CourseRequirements");
+                            
+                            // 11. Cuối cùng xóa các khóa học
                             _context.Courses.RemoveRange(relatedCourses);
-                            Console.WriteLine($"Deleted {relatedCourses.Count} courses");
+                            _logger.LogInformation("Deleted {CourseCount} courses", relatedCourses.Count);
                             
                             // Commit transaction
                             transaction.Commit();
-                            Console.WriteLine("Transaction committed successfully");
+                            _logger.LogInformation("Transaction committed successfully");
                             
                             TempData["Success"] = $"Đã xóa danh mục '{category.CategoryName}' và {relatedCourses.Count} khóa học liên quan cùng tất cả dữ liệu liên quan!";
                         }
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            Console.WriteLine($"Error in transaction, rolling back: {ex.Message}");
+                            _logger.LogError(ex, "Error in transaction, rolling back for category {CategoryId}", id);
                             throw;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error deleting related data: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    _logger.LogError(ex, "Error deleting related data for category {CategoryId}", id);
                     TempData["Error"] = $"Lỗi khi xóa dữ liệu liên quan: {ex.Message}";
                     return RedirectToAction(nameof(Index));
                 }
             }
             else
             {
-                Console.WriteLine("No related courses to delete");
+                _logger.LogInformation("No related courses to delete for category {CategoryId}", id);
                 TempData["Success"] = $"Đã xóa danh mục '{category.CategoryName}' thành công!";
             }
 
             // Xóa danh mục
-            Console.WriteLine("Deleting category...");
+            _logger.LogInformation("Deleting category {CategoryId}", id);
             _context.Categories.Remove(category);
             _context.SaveChanges();
-            Console.WriteLine("Category deleted successfully");
+            _logger.LogInformation("Category {CategoryId} deleted successfully", id);
 
             return RedirectToAction(nameof(Index));
         }
