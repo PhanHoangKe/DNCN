@@ -1,0 +1,79 @@
+@model EduFlex.Models.Categories
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Thông Tin Danh Mục</h5>
+
+                        <form asp-area="Admin" asp-controller="Categories" asp-action="Create" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label asp-for="CategoryName" class="form-label">Tên danh mục *</label>
+                                <input asp-for="CategoryName" class="form-control" placeholder="Nhập tên danh mục" />
+                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Icon</label>
+                                <input type="file" name="iconFile" class="form-control" accept="image/*" />
+                                <div class="form-text">Chọn file ảnh để làm icon cho danh mục (không bắt buộc)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả cho danh mục"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ParentCategoryId" class="form-label">Danh mục cha</label>
+                                <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
+                                    <option value="">-- Chọn danh mục cha (không bắt buộc) --</option>
+                                </select>
+                                <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                <label asp-for="IsActive" class="form-check-label">Kích hoạt danh mục</label>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Lưu</button>
+                                <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Kiểm tra CategoryName trước khi submit
+        $(function() {
+            $('form').on('submit', function(e) {
+                if (!$('#CategoryName').val().trim()) {
+                    e.preventDefault();
+                    alert('Vui lòng nhập tên danh mục!');
+                    $('#CategoryName').focus();
+                }
+            });
+        });
+    </script>
+}

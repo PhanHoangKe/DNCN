@@ -1,0 +1,75 @@
+@model EduFlex.Models.Categories
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Thông Tin Danh Mục</h5>
+
+                        <form asp-area="Admin" asp-controller="Categories" asp-action="Edit" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="CategoryId" />
+
+                            <div class="mb-3">
+                                <label asp-for="CategoryName" class="form-label">Tên danh mục *</label>
+                                <input asp-for="CategoryName" class="form-control" />
+                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Icon</label>
+                                <input type="file" name="iconFile" class="form-control" accept="image/*" />
+                                @if (!string.IsNullOrEmpty(Model.Icon))
+                                {
+                                    <div class="mt-2">
+                                        <img src="@Model.Icon" alt="Current Icon" class="mt-2" style="width:60px; height:60px; object-fit:cover;" />
+                                        <small class="text-muted d-block">Icon hiện tại</small>
+                                    </div>
+                                }
+                                <div class="form-text">Chọn file ảnh mới để thay thế icon hiện tại (không bắt buộc)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ParentCategoryId" class="form-label">Danh mục cha</label>
+                                <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
+                                    <option value="">-- Chọn danh mục cha (không bắt buộc) --</option>
+                                </select>
+                                <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                <label asp-for="IsActive" class="form-check-label">Kích hoạt danh mục</label>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Lưu</button>
+                                <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

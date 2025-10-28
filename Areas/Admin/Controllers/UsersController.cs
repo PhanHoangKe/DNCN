@@ -44,6 +44,13 @@ namespace EduFlex.Areas.Admin.Controllers
                 return View(users);
             }
 
+            if (_context.Users.Any(u => u.Email == users.Email))
+            {
+                ModelState.AddModelError("Email", "Email này đã được sử dụng. Vui lòng chọn email khác.");
+                ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName", users?.RoleId);
+                return View(users);
+            }
+
             users.CreatedAt = DateTime.Now;
             users.UpdatedAt = DateTime.Now;
             users.PasswordHash = BCrypt.Net.BCrypt.HashPassword(users.PasswordHash);

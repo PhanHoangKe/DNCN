@@ -11,6 +11,7 @@ namespace EduFlex.Areas.Admin.Models
         public int RoleId { get; set; }
         public string? RoleName { get; set; }
         public string? Description { get; set; }
+        public DateTime? CreatedAt { get; set; }
         public ICollection<Users>? Users { get; set; }
     }
 }

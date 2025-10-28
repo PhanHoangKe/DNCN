@@ -9,10 +9,16 @@ public partial class Course
     [Key]
     public int CourseId { get; set; }
 
+    [Required(ErrorMessage = "Tiêu đề khóa học là bắt buộc")]
+    [StringLength(200, ErrorMessage = "Tiêu đề không quá 200 ký tự")]
     public string CourseTitle { get; set; } = null!;
 
+    [Required(ErrorMessage = "Slug là bắt buộc")]
+    [StringLength(200, ErrorMessage = "Slug không quá 200 ký tự")]
+    [RegularExpression(@"^[a-z0-9-]+$", ErrorMessage = "Slug chỉ chứa chữ thường, số và dấu gạch ngang")]
     public string Slug { get; set; } = null!;
 
+    [StringLength(500, ErrorMessage = "Mô tả ngắn không quá 500 ký tự")]
     public string? ShortDescription { get; set; }
 
     public string? FullDescription { get; set; }
@@ -23,14 +29,21 @@ public partial class Course
 
     public decimal? Price { get; set; }
 
-    public bool? IsFree { get; set; }
+    public bool IsFree { get; set; }
 
+    [Range(0, 999999999, ErrorMessage = "Giá giảm phải lớn hơn hoặc bằng 0")]
     public decimal? DiscountPrice { get; set; }
 
+    [Required(ErrorMessage = "Vui lòng chọn giảng viên")]
+    [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn giảng viên hợp lệ")]
     public int InstructorId { get; set; }
 
+    [Required(ErrorMessage = "Vui lòng chọn danh mục")]
+    [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn danh mục hợp lệ")]
     public int CategoryId { get; set; }
 
+    [Required(ErrorMessage = "Vui lòng chọn cấp độ")]
+    [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn cấp độ hợp lệ")]
     public int LevelId { get; set; }
 
     public string? Language { get; set; }
@@ -39,9 +52,9 @@ public partial class Course
 
     public int? TotalLessons { get; set; }
 
-    public bool? IsPublished { get; set; }
+    public bool IsPublished { get; set; }
 
-    public bool? IsApproved { get; set; }
+    public bool IsApproved { get; set; }
 
     public int? ApprovedBy { get; set; }
 

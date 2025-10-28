@@ -49,5 +49,35 @@ namespace EduFlex.Models
 
         [ForeignKey("RoleId")]
         public virtual Roles? Role { get; set; }
+        public virtual ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
+
+    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+
+    public virtual ICollection<Course> CourseApprovedByNavigations { get; set; } = new List<Course>();
+
+    public virtual ICollection<Course> CourseInstructors { get; set; } = new List<Course>();
+
+    public virtual ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
+
+    public virtual ICollection<CourseView> CourseViews { get; set; } = new List<CourseView>();
+
+    public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+    public virtual ICollection<LessonComment> LessonComments { get; set; } = new List<LessonComment>();
+
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
+
+    public virtual ICollection<QnAanswer> QnAanswers { get; set; } = new List<QnAanswer>();
+
+    public virtual ICollection<QnA> QnAs { get; set; } = new List<QnA>();
+
+    public virtual ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
+
+
+    public virtual ICollection<SystemAnnouncement> SystemAnnouncements { get; set; } = new List<SystemAnnouncement>();
     }
 }
