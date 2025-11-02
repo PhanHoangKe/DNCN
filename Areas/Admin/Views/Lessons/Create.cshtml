@@ -2,7 +2,7 @@
 
 @{
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
-    ViewData["Title"] = "Th?m B?i Gi?ng M?i";
+    ViewData["Title"] = "Thêm Bài Giảng Mới";
 }
 
 <main id="main" class="main">
@@ -15,36 +15,42 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Th?ng Tin B?i Gi?ng</h5>
+                        <h5 class="card-title">Thông Tin Bài Giảng</h5>
 
                         <form asp-area="Admin" asp-controller="Lessons" asp-action="Create" method="post">
                             @Html.AntiForgeryToken()
 
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                             <div class="mb-3">
-                                <label asp-for="LessonTitle" class="form-label">Ti?u ?? b?i gi?ng *</label>
-                                <input asp-for="LessonTitle" class="form-control" placeholder="Nh?p ti?u ?? b?i gi?ng" />
+                                <label asp-for="LessonTitle" class="form-label">Tiêu đề bài giảng *</label>
+                                <input asp-for="LessonTitle" class="form-control" placeholder="Nhập tiêu đề bài giảng"
+                                    required />
                                 <span asp-validation-for="LessonTitle" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Description" class="form-label">M? t?</label>
-                                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nh?p m? t? cho b?i gi?ng"></textarea>
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"
+                                    placeholder="Nhập mô tả cho bài giảng"></textarea>
                                 <span asp-validation-for="Description" class="text-danger"></span>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label asp-for="SectionId" class="form-label">Section *</label>
-                                    <select asp-for="SectionId" class="form-select" asp-items="ViewBag.Sections">
-                                        <option value="">-- Ch?n Section --</option>
+                                    <label asp-for="SectionId" class="form-label">Phần (Section) *</label>
+                                    <select asp-for="SectionId" class="form-select" asp-items="ViewBag.Sections"
+                                        required>
+                                        <option value="" disabled selected>-- Chọn phần --</option>
                                     </select>
                                     <span asp-validation-for="SectionId" class="text-danger"></span>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label asp-for="TypeId" class="form-label">Lo?i b?i gi?ng *</label>
-                                    <select asp-for="TypeId" class="form-select" asp-items="ViewBag.LessonTypes">
-                                        <option value="">-- Ch?n lo?i --</option>
+                                    <label asp-for="TypeId" class="form-label">Loại bài giảng *</label>
+                                    <select asp-for="TypeId" class="form-select" asp-items="ViewBag.LessonTypes"
+                                        required>
+                                        <option value="" disabled selected>-- Chọn loại --</option>
                                     </select>
                                     <span asp-validation-for="TypeId" class="text-danger"></span>
                                 </div>
@@ -52,46 +58,54 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label asp-for="VideoUrl" class="form-label">URL Video</label>
-                                    <input asp-for="VideoUrl" class="form-control" placeholder="Nh?p URL video (YouTube, Vimeo, ...)" />
+                                    <label asp-for="VideoUrl" class="form-label">Đường dẫn video</label>
+                                    <input asp-for="VideoUrl" class="form-control"
+                                        placeholder="Nhập URL video (YouTube, Vimeo...)" />
                                     <span asp-validation-for="VideoUrl" class="text-danger"></span>
-                                    <div class="form-text">URL video c?a b?i gi?ng (kh?ng b?t bu?c)</div>
+                                    <div class="form-text">Đường dẫn video của bài giảng (không bắt buộc)</div>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label asp-for="ContentUrl" class="form-label">URL N?i dung</label>
-                                    <input asp-for="ContentUrl" class="form-control" placeholder="Nh?p URL n?i dung" />
+                                    <label asp-for="ContentUrl" class="form-label">Đường dẫn nội dung</label>
+                                    <input asp-for="ContentUrl" class="form-control" placeholder="Nhập URL nội dung" />
                                     <span asp-validation-for="ContentUrl" class="text-danger"></span>
-                                    <div class="form-text">URL t?i li?u ho?c n?i dung kh?c (kh?ng b?t bu?c)</div>
+                                    <div class="form-text">URL tài liệu hoặc nội dung khác (không bắt buộc)</div>
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <label asp-for="Duration" class="form-label">Th?i l??ng (ph?t)</label>
+                                    <label asp-for="Duration" class="form-label">Thời lượng (phút)</label>
                                     <input asp-for="Duration" type="number" class="form-control" min="0" placeholder="0" />
                                     <span asp-validation-for="Duration" class="text-danger"></span>
                                 </div>
 
                                 <div class="col-md-4 mb-3">
-                                    <label asp-for="DisplayOrder" class="form-label">Th? t? hi?n th?</label>
+                                    <label asp-for="DisplayOrder" class="form-label">Thứ tự hiển thị</label>
                                     <input asp-for="DisplayOrder" type="number" class="form-control" min="0" placeholder="0" />
                                     <span asp-validation-for="DisplayOrder" class="text-danger"></span>
-                                    <div class="form-text">N?u ?? tr?ng, s? t? ??ng g?n th? t? ti?p theo</div>
+                                    <div class="form-text">Nếu để trống, hệ thống sẽ tự động gán thứ tự tiếp theo</div>
                                 </div>
 
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Tr?ng th?i</label>
+                                    <label class="form-label">Trạng thái</label>
                                     <div class="form-check mt-2">
-                                        <input asp-for="IsFree" class="form-check-input" type="checkbox" />
-                                        <label asp-for="IsFree" class="form-check-label">Mi?n ph?</label>
+                                        <input type="hidden" name="IsFree" value="false" />
+                                        <input type="checkbox" name="IsFree" id="IsFree" value="true"
+                                            class="form-check-input" />
+                                        <label class="form-check-label" for="IsFree">Miễn phí</label>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="text-end">
-                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> L?u</button>
-                                <a asp-area="Admin" asp-controller="Lessons" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> H?y</a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Lưu
+                                </button>
+                                <a asp-area="Admin" asp-controller="Lessons" asp-action="Index"
+                                    class="btn btn-secondary ms-2">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -104,26 +118,26 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Ki?m tra c?c tr??ng b?t bu?c tr??c khi submit
-        $(function() {
-            $('form').on('submit', function(e) {
+        // Kiểm tra các trường bắt buộc trước khi gửi form
+        $(function () {
+            $('form').on('submit', function (e) {
                 if (!$('#LessonTitle').val().trim()) {
                     e.preventDefault();
-                    alert('Vui l?ng nh?p ti?u ?? b?i gi?ng!');
+                    alert('Vui lòng nhập tiêu đề bài giảng!');
                     $('#LessonTitle').focus();
                     return false;
                 }
-                
+
                 if (!$('#SectionId').val()) {
                     e.preventDefault();
-                    alert('Vui l?ng ch?n Section!');
+                    alert('Vui lòng chọn phần (Section)!');
                     $('#SectionId').focus();
                     return false;
                 }
-                
+
                 if (!$('#TypeId').val()) {
                     e.preventDefault();
-                    alert('Vui l?ng ch?n lo?i b?i gi?ng!');
+                    alert('Vui lòng chọn loại bài giảng!');
                     $('#TypeId').focus();
                     return false;
                 }

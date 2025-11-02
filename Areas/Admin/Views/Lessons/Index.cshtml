@@ -35,6 +35,15 @@
                     }
 
                     <div class="card-body mt-4">
+                        @if (Model == null || !Model.Any())
+                        {
+                            <div class="alert alert-info text-center">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Chưa có bài giảng nào. <a asp-area="Admin" asp-controller="Lessons" asp-action="Create">Thêm bài giảng đầu tiên</a>
+                            </div>
+                        }
+                        else
+                        {
                         <table class="table table-hover table-bordered datatable" style="background-color: white;">
                             <thead class="thead-light">
                                 <tr>
@@ -70,10 +79,24 @@
                                             }
                                         </td>
                                         <td class="text-center align-middle">
-                                            <span class="badge bg-info">@lesson.Section?.Course?.CourseTitle</span>
+                                            @if (lesson.Section?.Course != null)
+                                            {
+                                                <span class="badge bg-info">@lesson.Section.Course.CourseTitle</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Chưa có</span>
+                                            }
                                         </td>
                                         <td class="text-center align-middle">
-                                            <small>@lesson.Section?.SectionTitle</small>
+                                            @if (lesson.Section != null)
+                                            {
+                                                <small>@lesson.Section.SectionTitle</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Chưa có</span>
+                                            }
                                         </td>
                                         <td class="text-center align-middle">
                                             <span class="badge bg-secondary">@lesson.Type?.TypeName</span>
@@ -121,6 +144,7 @@
                                 }
                             </tbody>
                         </table>
+                        }
                     </div>
                 </div>
             </div>

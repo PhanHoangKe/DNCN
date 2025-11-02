@@ -1,11 +1,9 @@
-using System;
-using System.Linq;
-using EduFlex.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using EduFlex.Models;
+using NuGet.Protocol;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 namespace EduFlex.Areas.Admin.Controllers
 {
     [Area("Admin")]
@@ -13,20 +11,24 @@ namespace EduFlex.Areas.Admin.Controllers
     {
         private readonly EduFlexContext _context;
         private readonly ILogger<LessonsController> _logger;
-        
-        public LessonsController(EduFlexContext context, ILogger<LessonsController> logger)
+
+        public LessonsController(EduFlexContext context)
         {
             _context = context;
-            _logger = logger;
+            _logger = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+                builder.AddDebug();
+            }).CreateLogger<LessonsController>();
         }
 
         public IActionResult Index()
         {
             var lessons = _context.Lessons
                 .Include(l => l.Section)
-                    .ThenInclude(s => s.Course)
+                .Include(s => s.Section.Course)
                 .Include(l => l.Type)
-                .OrderByDescending(l => l.CreatedAt)
+                .OrderByDescending(l => l.CreatedAt ?? DateTime.MinValue)
                 .ToList();
             return View(lessons);
         }
@@ -45,49 +47,30 @@ namespace EduFlex.Areas.Admin.Controllers
                 .ToList();
             
             ViewBag.Sections = new SelectList(sections, "SectionId", "SectionName");
-            
             ViewBag.LessonTypes = new SelectList(_context.LessonTypes.OrderBy(t => t.TypeName), "TypeId", "TypeName");
             return View();
         }
 
+        // POST: Admin/Lessons/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Lesson lesson)
         {
             if (!ModelState.IsValid)
             {
-                var sections = _context.Sections
-                    .Include(s => s.Course)
-                    .OrderBy(s => s.Course.CourseTitle)
-                    .ThenBy(s => s.DisplayOrder)
-                    .Select(s => new { 
-                        SectionId = s.SectionId, 
-                        SectionName = $"{s.Course.CourseTitle} - {s.SectionTitle}" 
-                    })
-                    .ToList();
-                
-                ViewBag.Sections = new SelectList(sections, "SectionId", "SectionName", lesson?.SectionId);
-                
-                ViewBag.LessonTypes = new SelectList(_context.LessonTypes.OrderBy(t => t.TypeName), "TypeId", "TypeName", lesson?.TypeId);
-                return View(lesson);
+                lesson.CreatedAt = DateTime.Now;
+
+                _context.Lessons.Add(lesson);
+                _context.SaveChanges();
+
+                TempData["Success"] = "✅ Thêm bài giảng thành công!";
+                return RedirectToAction(nameof(Index));
             }
 
-            lesson.CreatedAt = DateTime.Now.ToUniversalTime();
-            lesson.UpdatedAt = DateTime.Now.ToUniversalTime();
-            
-            if (lesson.DisplayOrder == null)
-            {
-                var maxOrder = _context.Lessons
-                    .Where(l => l.SectionId == lesson.SectionId)
-                    .Max(l => (int?)l.DisplayOrder) ?? 0;
-                lesson.DisplayOrder = maxOrder + 1;
-            }
-
-            _context.Lessons.Add(lesson);
-            _context.SaveChanges();
-
-            TempData["Success"] = "Th?m b?i gi?ng th?nh c?ng!";
-            return RedirectToAction(nameof(Index));
+            TempData["Error"] = "❌ Không thể thêm bài giảng. Vui lòng kiểm tra lại thông tin.";
+            ViewBag.Sections = new SelectList(_context.Sections, "SectionId", "SectionTitle", lesson.SectionId);
+            ViewBag.LessonTypes = new SelectList(_context.LessonTypes, "TypeId", "TypeName", lesson.TypeId);
+            return View(lesson);
         }
 
         [HttpGet]
@@ -111,7 +94,6 @@ namespace EduFlex.Areas.Admin.Controllers
                 .ToList();
             
             ViewBag.Sections = new SelectList(sections, "SectionId", "SectionName", lesson.SectionId);
-            
             ViewBag.LessonTypes = new SelectList(_context.LessonTypes.OrderBy(t => t.TypeName), "TypeId", "TypeName", lesson.TypeId);
             return View(lesson);
         }
@@ -123,8 +105,31 @@ namespace EduFlex.Areas.Admin.Controllers
             var lesson = _context.Lessons.Find(id);
             if (lesson == null) return NotFound();
 
-            if (!ModelState.IsValid)
+            try
             {
+                // Xử lý IsFree từ form
+                var isFreeValues = Request.Form["IsFree"];
+                updatedLesson.IsFree = isFreeValues.Any(v => v == "true");
+
+                if (!ModelState.IsValid)
+                {
+                    // Cập nhật các trường
+                    lesson.LessonTitle = updatedLesson.LessonTitle;
+                    lesson.Description = updatedLesson.Description;
+                    lesson.SectionId = updatedLesson.SectionId;
+                    lesson.TypeId = updatedLesson.TypeId;
+                    lesson.ContentUrl = updatedLesson.ContentUrl;
+                    lesson.VideoUrl = updatedLesson.VideoUrl;
+                    lesson.Duration = updatedLesson.Duration;
+                    lesson.IsFree = updatedLesson.IsFree;
+                    lesson.DisplayOrder = updatedLesson.DisplayOrder;
+                    lesson.UpdatedAt = DateTime.Now.ToUniversalTime();
+
+                    _context.SaveChanges();
+                    TempData["Success"] = "Cập nhật bài giảng thành công!";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 var sections = _context.Sections
                     .Include(s => s.Course)
                     .OrderBy(s => s.Course.CourseTitle)
@@ -136,26 +141,29 @@ namespace EduFlex.Areas.Admin.Controllers
                     .ToList();
                 
                 ViewBag.Sections = new SelectList(sections, "SectionId", "SectionName", updatedLesson.SectionId);
-                
                 ViewBag.LessonTypes = new SelectList(_context.LessonTypes.OrderBy(t => t.TypeName), "TypeId", "TypeName", updatedLesson.TypeId);
                 return View(updatedLesson);
             }
-
-            // C?p nh?t c?c tr??ng
-            lesson.LessonTitle = updatedLesson.LessonTitle;
-            lesson.Description = updatedLesson.Description;
-            lesson.SectionId = updatedLesson.SectionId;
-            lesson.TypeId = updatedLesson.TypeId;
-            lesson.ContentUrl = updatedLesson.ContentUrl;
-            lesson.VideoUrl = updatedLesson.VideoUrl;
-            lesson.Duration = updatedLesson.Duration;
-            lesson.IsFree = updatedLesson.IsFree;
-            lesson.DisplayOrder = updatedLesson.DisplayOrder;
-            lesson.UpdatedAt = DateTime.Now.ToUniversalTime();
-
-            _context.SaveChanges();
-            TempData["Success"] = "C?p nh?t b?i gi?ng th?nh c?ng!";
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating lesson {LessonId}", id);
+                TempData["Error"] = $"Lỗi khi cập nhật bài giảng: {ex.Message}";
+                
+                var sections = _context.Sections
+                    .Include(s => s.Course)
+                    .OrderBy(s => s.Course.CourseTitle)
+                    .ThenBy(s => s.DisplayOrder)
+                    .Select(s => new { 
+                        SectionId = s.SectionId, 
+                        SectionName = $"{s.Course.CourseTitle} - {s.SectionTitle}" 
+                    })
+                    .ToList();
+                
+                ViewBag.Sections = new SelectList(sections, "SectionId", "SectionName", updatedLesson.SectionId);
+                ViewBag.LessonTypes = new SelectList(_context.LessonTypes.OrderBy(t => t.TypeName), "TypeId", "TypeName", updatedLesson.TypeId);
+                
+                return View(updatedLesson);
+            }
         }
 
         [HttpGet]
@@ -173,7 +181,7 @@ namespace EduFlex.Areas.Admin.Controllers
             
             if (lesson == null) return NotFound();
 
-            // Ki?m tra c?c quan h?
+            // Kiểm tra các quan hệ
             ViewBag.HasAttachments = lesson.LessonAttachments.Any();
             ViewBag.HasComments = lesson.LessonComments.Any();
             ViewBag.HasProgress = lesson.LessonProgresses.Any();
@@ -200,62 +208,107 @@ namespace EduFlex.Areas.Admin.Controllers
             if (lesson == null) 
             {
                 _logger.LogWarning("Lesson with id {LessonId} not found", id);
-                return NotFound();
+                TempData["Error"] = "Bài giảng không tồn tại hoặc đã bị xóa!";
+                return RedirectToAction(nameof(Index));
             }
 
             try
             {
-                // X?a c?c d? li?u li?n quan
-                if (lesson.LessonAttachments.Any())
+                using (var transaction = _context.Database.BeginTransaction())
                 {
-                    _context.LessonAttachments.RemoveRange(lesson.LessonAttachments);
-                }
-                
-                if (lesson.LessonComments.Any())
-                {
-                    _context.LessonComments.RemoveRange(lesson.LessonComments);
-                }
-                
-                if (lesson.LessonProgresses.Any())
-                {
-                    _context.LessonProgresses.RemoveRange(lesson.LessonProgresses);
-                }
-
-                // X?a quizzes v? d? li?u li?n quan c?a quiz
-                if (lesson.Quizzes.Any())
-                {
-                    foreach (var quiz in lesson.Quizzes)
+                    try
                     {
-                        var questions = _context.Questions.Where(q => q.QuizId == quiz.QuizId).ToList();
-                        foreach (var question in questions)
+                        // 1. Xóa StudentAnswers liên quan đến Quizzes của Lesson này
+                        var quizIds = lesson.Quizzes.Select(q => q.QuizId).ToList();
+                        if (quizIds.Any())
                         {
-                            var answers = _context.Answers.Where(a => a.QuestionId == question.QuestionId).ToList();
-                            _context.Answers.RemoveRange(answers);
+                            var attempts = _context.QuizAttempts
+                                .Where(qa => quizIds.Contains(qa.QuizId))
+                                .Select(qa => qa.AttemptId)
+                                .ToList();
+
+                            if (attempts.Any())
+                            {
+                                var studentAnswers = _context.StudentAnswers
+                                    .Where(sa => attempts.Contains(sa.AttemptId))
+                                    .ToList();
+                                _context.StudentAnswers.RemoveRange(studentAnswers);
+                                _logger.LogInformation("Deleted {Count} StudentAnswers", studentAnswers.Count);
+                            }
+
+                            // 2. Xóa QuizAttempts
+                            var quizAttempts = _context.QuizAttempts
+                                .Where(qa => quizIds.Contains(qa.QuizId))
+                                .ToList();
+                            _context.QuizAttempts.RemoveRange(quizAttempts);
+                            _logger.LogInformation("Deleted {Count} QuizAttempts", quizAttempts.Count);
+
+                            // 3. Xóa Answers và Questions của Quizzes
+                            var questions = _context.Questions
+                                .Where(q => quizIds.Contains(q.QuizId))
+                                .ToList();
+
+                            var questionIds = questions.Select(q => q.QuestionId).ToList();
+                            if (questionIds.Any())
+                            {
+                                var answers = _context.Answers
+                                    .Where(a => questionIds.Contains(a.QuestionId))
+                                    .ToList();
+                                _context.Answers.RemoveRange(answers);
+                                _logger.LogInformation("Deleted {Count} Answers", answers.Count);
+                            }
+
+                            _context.Questions.RemoveRange(questions);
+                            _logger.LogInformation("Deleted {Count} Questions", questions.Count);
+
+                            // 4. Xóa Quizzes
+                            _context.Quizzes.RemoveRange(lesson.Quizzes);
+                            _logger.LogInformation("Deleted {Count} Quizzes", lesson.Quizzes.Count);
                         }
-                        _context.Questions.RemoveRange(questions);
-                        
-                        var attempts = _context.QuizAttempts.Where(qa => qa.QuizId == quiz.QuizId).ToList();
-                        foreach (var attempt in attempts)
+
+                        // 5. Xóa LessonComments
+                        if (lesson.LessonComments.Any())
                         {
-                            var studentAnswers = _context.StudentAnswers.Where(sa => sa.AttemptId == attempt.AttemptId).ToList();
-                            _context.StudentAnswers.RemoveRange(studentAnswers);
+                            _context.LessonComments.RemoveRange(lesson.LessonComments);
+                            _logger.LogInformation("Deleted {Count} LessonComments", lesson.LessonComments.Count);
                         }
-                        _context.QuizAttempts.RemoveRange(attempts);
+
+                        // 6. Xóa LessonAttachments
+                        if (lesson.LessonAttachments.Any())
+                        {
+                            _context.LessonAttachments.RemoveRange(lesson.LessonAttachments);
+                            _logger.LogInformation("Deleted {Count} LessonAttachments", lesson.LessonAttachments.Count);
+                        }
+
+                        // 7. Xóa LessonProgresses (phải xóa trước khi xóa Lesson vì có FK)
+                        if (lesson.LessonProgresses.Any())
+                        {
+                            _context.LessonProgresses.RemoveRange(lesson.LessonProgresses);
+                            _logger.LogInformation("Deleted {Count} LessonProgresses", lesson.LessonProgresses.Count);
+                        }
+
+                        // 8. Cuối cùng xóa Lesson
+                        _context.Lessons.Remove(lesson);
+                        _logger.LogInformation("Deleting Lesson {LessonId}", id);
+
+                        _context.SaveChanges();
+                        transaction.Commit();
+
+                        TempData["Success"] = $"Đã xóa bài giảng '{lesson.LessonTitle}' thành công!";
+                        _logger.LogInformation("Lesson {LessonId} deleted successfully", id);
                     }
-                    _context.Quizzes.RemoveRange(lesson.Quizzes);
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        _logger.LogError(ex, "Error in transaction, rolling back for lesson {LessonId}", id);
+                        throw;
+                    }
                 }
-
-                // X?a b?i gi?ng
-                _context.Lessons.Remove(lesson);
-                _context.SaveChanges();
-
-                TempData["Success"] = $"?? x?a b?i gi?ng '{lesson.LessonTitle}' th?nh c?ng!";
-                _logger.LogInformation("Lesson {LessonId} deleted successfully", id);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting lesson {LessonId}", id);
-                TempData["Error"] = $"L?i khi x?a b?i gi?ng: {ex.Message}";
+                TempData["Error"] = $"Lỗi khi xóa bài giảng: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
