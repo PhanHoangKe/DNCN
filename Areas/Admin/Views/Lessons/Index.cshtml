@@ -1,4 +1,4 @@
-@model IEnumerable<EduFlex.Models.Category>
+@model IEnumerable<EduFlex.Models.Lesson>
 
 @{
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
@@ -6,7 +6,7 @@
 
 <main id="main" class="main">
     <div class="pagetitle">
-        <h2>Danh Sách Danh Mục</h2>
+        <h2>Danh Sách Bài Giảng</h2>
     </div>
 
     <section class="section dashboard">
@@ -14,10 +14,11 @@
             <div class="col-12">
                 <div class="card recent-sales overflow-auto">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <a class="btn btn-success" asp-area="Admin" asp-controller="Categories" asp-action="Create">
-                            <i class="bi bi-plus-circle me-1"></i>Thêm danh mục
+                        <a class="btn btn-success" asp-area="Admin" asp-controller="Lessons" asp-action="Create">
+                            <i class="bi bi-plus-circle me-1"></i>Thêm bài giảng
                         </a>
                     </div>
+
                     @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
@@ -38,33 +39,29 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th class="text-center">ID</th>
-                                    <th class="text-center">Icon</th>
-                                    <th class="text-center">Tên danh mục</th>
+                                    <th class="text-center">Tiêu đề</th>
                                     <th class="text-center">Mô tả</th>
-                                    <th class="text-center">Danh mục cha</th>
-                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center">Khóa học</th>
+                                    <th class="text-center">Phần học</th>
+                                    <th class="text-center">Loại</th>
+                                    <th class="text-center">Thời lượng</th>
+                                    <th class="text-center">Miễn phí</th>
+                                    <th class="text-center">Thứ tự</th>
                                     <th class="text-center">Ngày tạo</th>
                                     <th class="text-center">Chức năng</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var c in Model)
+                                @foreach (var lesson in Model)
                                 {
                                     <tr class="table-row">
-                                        <td class="text-center align-middle">@c.CategoryId</td>
+                                        <td class="text-center align-middle">@lesson.LessonId</td>
+                                        <td class="text-center align-middle text-primary fw-bold">@lesson.LessonTitle</td>
                                         <td class="text-center align-middle">
-                                            <img src="@c.Icon" 
-                                                alt="Icon @c.CategoryName" 
-                                                class="rounded-circle border-none" 
-                                                style="width: 40px; height: 40px; object-fit: cover;"
-                                                onerror="this.src='/uploads/categories/default.png';" />
-                                        </td>
-                                        <td class="text-center align-middle text-primary fw-bold">@c.CategoryName</td>
-                                        <td class="text-center align-middle">
-                                            @if (!string.IsNullOrEmpty(c.Description))
+                                            @if (!string.IsNullOrEmpty(lesson.Description))
                                             {
-                                                <span title="@c.Description">
-                                                    @(c.Description.Length > 50 ? c.Description.Substring(0, 50) + "..." : c.Description)
+                                                <span title="@lesson.Description">
+                                                    @(lesson.Description.Length > 50 ? lesson.Description.Substring(0, 50) + "..." : lesson.Description)
                                                 </span>
                                             }
                                             else
@@ -73,38 +70,49 @@
                                             }
                                         </td>
                                         <td class="text-center align-middle">
-                                            @if (c.ParentCategory != null)
+                                            <span class="badge bg-info">@lesson.Section?.Course?.CourseTitle</span>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <small>@lesson.Section?.SectionTitle</small>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <span class="badge bg-secondary">@lesson.Type?.TypeName</span>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @if (lesson.Duration.HasValue)
                                             {
-                                                <span class="badge bg-info">@c.ParentCategory.CategoryName</span>
+                                                <span>@lesson.Duration phút</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-secondary">Danh mục gốc</span>
+                                                <span class="text-muted">-</span>
                                             }
-                                        </td> 
+                                        </td>
                                         <td class="text-center align-middle">
-                                            @if (c.IsActive == true)
+                                            @if (lesson.IsFree == true)
                                             {
                                                 <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Hoạt động
+                                                    <i class="bi bi-check-circle me-1"></i>Có
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge bg-danger">
-                                                    <i class="bi bi-x-circle me-1"></i>Khóa
+                                                    <i class="bi bi-x-circle me-1"></i>Không
                                                 </span>
                                             }
                                         </td>
-                                        <td class="text-center align-middle">@c.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-center align-middle">@(lesson.DisplayOrder ?? 0)</td>
+                                        <td class="text-center align-middle">@lesson.CreatedAt?.ToString("dd/MM/yyyy")</td>
+
                                         <td class="text-center align-middle">
                                             <div class="btn-group" role="group">
-                                                <a asp-area="Admin" asp-controller="Categories" asp-action="Edit" asp-route-id="@c.CategoryId"
-                                                   class="btn btn-primary btn-sm" title="Chỉnh sửa danh mục">
+                                                <a asp-area="Admin" asp-controller="Lessons" asp-action="Edit" asp-route-id="@lesson.LessonId"
+                                                   class="btn btn-primary btn-sm" title="Chỉnh sửa bài giảng">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
-                                                <a asp-area="Admin" asp-controller="Categories" asp-action="Delete" asp-route-id="@c.CategoryId"
-                                                   class="btn btn-danger btn-sm" title="Xóa danh mục">
+                                                <a asp-area="Admin" asp-controller="Lessons" asp-action="Delete" asp-route-id="@lesson.LessonId"
+                                                   class="btn btn-danger btn-sm" title="Xóa bài giảng">
                                                     <i class="bi bi-trash"></i>
                                                 </a>
                                             </div>
@@ -124,16 +132,12 @@
     .table td {
         vertical-align: middle;
     }
-    
+
     .table-row:hover {
         background-color: #f8f9fa;
     }
-    
+
     .btn-group .btn {
         margin: 0 2px;
-    }
-    
-    img.rounded-circle {
-        border: 2px solid #dee2e6;
     }
 </style>

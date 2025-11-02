@@ -1,0 +1,164 @@
+@model IEnumerable<EduFlex.Models.Course>
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>Danh Sách Khóa Học</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row">
+            <div class="col-12">
+                <div class="card recent-sales overflow-auto">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <a class="btn btn-success" asp-area="Admin" asp-controller="Course" asp-action="Create">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm khóa học
+                        </a>
+                    </div>
+
+                    <div class="card-body mt-4">
+                        <table class="table table-hover table-bordered datatable" style="background-color: white;">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center">ID</th>
+                                    <th class="text-center">Thumbnail</th>
+                                    <th class="text-center">Tiêu đề</th>
+                                    <th class="text-center">Danh mục</th>
+                                    <th class="text-center">Giảng viên</th>
+                                    <th class="text-center">Cấp độ</th>
+                                    <th class="text-center">Giá</th>
+                                    <th class="text-center">Lượt xem</th>
+                                    <th class="text-center">Đăng ký</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center">Ngày tạo</th>
+                                    <th class="text-center">Chức năng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in Model)
+                                {
+                                    <tr class="table-row">
+                                        <td class="text-center align-middle">@c.CourseId</td>
+                                        <td class="text-center align-middle">
+                                            @if (!string.IsNullOrEmpty(c.ThumbnailUrl))
+                                            {
+                                                <img src="@c.ThumbnailUrl" 
+                                                     alt="Thumbnail @c.CourseTitle" 
+                                                     class="rounded" 
+                                                     style="width: 60px; height: 40px; object-fit: cover;"
+                                                     onerror="this.src='/Uploads/thumbnails/default.png';" />
+                                            }
+                                            else
+                                            {
+                                                <img src="/Uploads/thumbnails/default.png" 
+                                                     alt="Default Thumbnail" 
+                                                     class="rounded" 
+                                                     style="width: 60px; height: 40px; object-fit: cover;" />
+                                            }
+                                        </td>
+                                        <td class="text-center align-middle text-primary">@c.CourseTitle</td>
+                                        <td class="text-center align-middle">
+                                            @if (c.Category != null)
+                                            {
+                                                <span class="badge bg-info">@c.Category.CategoryName</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Chưa có</span>
+                                            }
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @if (c.Instructor != null)
+                                            {
+                                                @c.Instructor.FullName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Chưa có</span>
+                                            }
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @if (c.Level != null)
+                                            {
+                                                <span class="badge bg-info">@c.Level.LevelName</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Chưa có</span>
+                                            }
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @if (c.IsFree == true)
+                                            {
+                                                <span class="badge bg-success">Miễn phí</span>
+                                            }
+                                            else if (c.DiscountPrice.HasValue && c.DiscountPrice.Value > 0)
+                                            {
+                                                <span class="text-decoration-line-through text-muted">@c.Price?.ToString("N0")</span>
+                                                <span class="badge bg-warning">@c.DiscountPrice?.ToString("N0")</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@(c.Price?.ToString("N0") ?? "Chưa có")</span>
+                                            }
+                                        </td>
+                                        <td class="text-center align-middle">@(c.ViewCount?.ToString() ?? "0")</td>
+                                        <td class="text-center align-middle">@(c.EnrollmentCount?.ToString() ?? "0")</td>
+                                        <td class="text-center align-middle">
+                                            @if (c.IsPublished == true)
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i> Đã xuất bản
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-x-circle me-1"></i> Chưa xuất bản
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-center align-middle">@(c.CreatedAt?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
+                                        <td class="text-center align-middle">
+                                            <div class="btn-group" role="group">
+                                                <a asp-area="Admin" asp-controller="Course" asp-action="Edit" asp-route-id="@c.CourseId"
+                                                   class="btn btn-primary btn-sm" title="Chỉnh sửa khóa học">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a asp-area="Admin" asp-controller="Course" asp-action="Delete" asp-route-id="@c.CourseId"
+                                                   class="btn btn-danger btn-sm" title="Xóa khóa học">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .table-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+    
+    img.rounded {
+        border: 2px solid #dee2e6;
+    }
+</style>

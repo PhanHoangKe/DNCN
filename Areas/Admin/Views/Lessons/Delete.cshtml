@@ -1,0 +1,180 @@
+@model EduFlex.Models.Lesson
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "X?a B?i Gi?ng";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Th?ng Tin B?i Gi?ng</h5>
+
+                        <form asp-action="Delete" method="post" onsubmit="return confirmDelete()">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="LessonId" />
+
+                            <div class="mb-3">
+                                <label class="form-label">Ti?u ?? b?i gi?ng</label>
+                                <input class="form-control" value="@Model.LessonTitle" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">M? t?</label>
+                                <textarea class="form-control" rows="3" readonly>@(Model.Description ?? "Ch?a c? m? t?")</textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Kh?a h?c</label>
+                                    <input class="form-control" value="@(Model.Section?.Course?.CourseTitle ?? "N/A")" readonly />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Section</label>
+                                    <input class="form-control" value="@(Model.Section?.SectionTitle ?? "N/A")" readonly />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Lo?i b?i gi?ng</label>
+                                    <input class="form-control" value="@(Model.Type?.TypeName ?? "N/A")" readonly />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Th?i l??ng</label>
+                                    <input class="form-control" value="@(Model.Duration?.ToString() + " ph?t" ?? "Ch?a c?")" readonly />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mi?n ph?</label>
+                                    <input class="form-control" value="@(Model.IsFree == true ? "C?" : "Kh?ng")" readonly />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Th? t? hi?n th?</label>
+                                    <input class="form-control" value="@(Model.DisplayOrder ?? 0)" readonly />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ng?y t?o</label>
+                                <input class="form-control" value="@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")" readonly />
+                            </div>
+
+                            @if (ViewBag.RelatedCount != null && ViewBag.RelatedCount > 0)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-danger">D? li?u li?n quan (@ViewBag.RelatedCount m?c)</label>
+                                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                        @if (ViewBag.HasAttachments == true)
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                                <span><i class="bi bi-paperclip me-2"></i>T?p ??nh k?m</span>
+                                                <span class="badge bg-warning">@Model.LessonAttachments.Count</span>
+                                            </div>
+                                        }
+                                        @if (ViewBag.HasComments == true)
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                                <span><i class="bi bi-chat-left-text me-2"></i>B?nh lu?n</span>
+                                                <span class="badge bg-info">@Model.LessonComments.Count</span>
+                                            </div>
+                                        }
+                                        @if (ViewBag.HasProgress == true)
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                                <span><i class="bi bi-clock-history me-2"></i>Ti?n tr?nh h?c</span>
+                                                <span class="badge bg-primary">@Model.LessonProgresses.Count</span>
+                                            </div>
+                                        }
+                                        @if (ViewBag.HasQuizzes == true)
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                                <span><i class="bi bi-question-circle me-2"></i>Quiz</span>
+                                                <span class="badge bg-danger">@Model.Quizzes.Count</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="form-text text-muted mt-2">
+                                        <strong>L?u ?:</strong> T?t c? d? li?u li?n quan s? b? x?a c?ng v?i b?i gi?ng n?y.
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>C?nh b?o:</strong> H?nh ??ng n?y kh?ng th? ho?n t?c. 
+                                @if (ViewBag.RelatedCount != null && ViewBag.RelatedCount > 0)
+                                {
+                                    <span>B?i gi?ng v? t?t c? d? li?u li?n quan (@ViewBag.RelatedCount m?c) s? b? x?a v?nh vi?n.</span>
+                                }
+                                else
+                                {
+                                    <span>B?i gi?ng s? b? x?a v?nh vi?n.</span>
+                                }
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">
+                                    <i class="bi bi-trash"></i> X?c nh?n x?a
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary ms-2">
+                                    <i class="bi bi-x-circle"></i> H?y
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+    .form-control[readonly] {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+    
+    .alert-warning {
+        border-left: 4px solid #ffc107;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function confirmDelete() {
+            var lessonTitle = '@Model.LessonTitle';
+            var relatedCount = @(ViewBag.RelatedCount ?? 0);
+            
+            var confirmMessage = '';
+            
+            if (relatedCount > 0) {
+                confirmMessage = `B?n c? ch?c ch?n mu?n x?a b?i gi?ng "${lessonTitle}" kh?ng?\\n\\n` +
+                              'H?nh ??ng n?y KH?NG TH? ho?n t?c v? s? x?a v?nh vi?n:\\n' +
+                              '? B?i gi?ng: ' + lessonTitle + '\\n' +
+                              '? S? d? li?u li?n quan: ' + relatedCount + ' m?c';
+            } else {
+                confirmMessage = `B?n c? ch?c ch?n mu?n x?a b?i gi?ng "${lessonTitle}" kh?ng?\\n\\n` +
+                               'H?nh ??ng n?y KH?NG TH? ho?n t?c!';
+            }
+            
+            if (confirm(confirmMessage)) {
+                return true; // Cho ph?p form submit
+            } else {
+                return false; // Ng?n form submit
+            }
+        }
+    </script>
+}

@@ -1,0 +1,130 @@
+@model EduFlex.Models.Lesson
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Ch?nh S?a B?i Gi?ng";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Th?ng Tin B?i Gi?ng</h5>
+
+                        <form asp-area="Admin" asp-controller="Lessons" asp-action="Edit" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="LessonId" />
+
+                            <div class="mb-3">
+                                <label asp-for="LessonTitle" class="form-label">Ti?u ?? b?i gi?ng *</label>
+                                <input asp-for="LessonTitle" class="form-control" />
+                                <span asp-validation-for="LessonTitle" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label">M? t?</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="SectionId" class="form-label">Section *</label>
+                                    <select asp-for="SectionId" class="form-select" asp-items="ViewBag.Sections">
+                                        <option value="">-- Ch?n Section --</option>
+                                    </select>
+                                    <span asp-validation-for="SectionId" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="TypeId" class="form-label">Lo?i b?i gi?ng *</label>
+                                    <select asp-for="TypeId" class="form-select" asp-items="ViewBag.LessonTypes">
+                                        <option value="">-- Ch?n lo?i --</option>
+                                    </select>
+                                    <span asp-validation-for="TypeId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="VideoUrl" class="form-label">URL Video</label>
+                                    <input asp-for="VideoUrl" class="form-control" />
+                                    <span asp-validation-for="VideoUrl" class="text-danger"></span>
+                                    <div class="form-text">URL video c?a b?i gi?ng (kh?ng b?t bu?c)</div>
+                                    @if (!string.IsNullOrEmpty(Model.VideoUrl))
+                                    {
+                                        <div class="mt-2">
+                                            <a href="@Model.VideoUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-play-circle me-1"></i>Xem video
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="ContentUrl" class="form-label">URL N?i dung</label>
+                                    <input asp-for="ContentUrl" class="form-control" />
+                                    <span asp-validation-for="ContentUrl" class="text-danger"></span>
+                                    <div class="form-text">URL t?i li?u ho?c n?i dung kh?c (kh?ng b?t bu?c)</div>
+                                    @if (!string.IsNullOrEmpty(Model.ContentUrl))
+                                    {
+                                        <div class="mt-2">
+                                            <a href="@Model.ContentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-file-earmark me-1"></i>Xem n?i dung
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="Duration" class="form-label">Th?i l??ng (ph?t)</label>
+                                    <input asp-for="Duration" type="number" class="form-control" min="0" />
+                                    <span asp-validation-for="Duration" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="DisplayOrder" class="form-label">Th? t? hi?n th?</label>
+                                    <input asp-for="DisplayOrder" type="number" class="form-control" min="0" />
+                                    <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Tr?ng th?i</label>
+                                    <div class="form-check mt-2">
+                                        <input asp-for="IsFree" class="form-check-input" type="checkbox" />
+                                        <label asp-for="IsFree" class="form-check-label">Mi?n ph?</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Th?ng tin kh?c</label>
+                                <div class="form-text">
+                                    <strong>Ng?y t?o:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")<br />
+                                    <strong>C?p nh?t l?n cu?i:</strong> @Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> L?u</button>
+                                <a asp-area="Admin" asp-controller="Lessons" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> H?y</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

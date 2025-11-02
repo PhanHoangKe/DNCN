@@ -22,6 +22,7 @@
     <Content Update="Areas\Admin\Views\**\*.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Watch Include="**\*.cshtml" />
   </ItemGroup>
 
 </Project>

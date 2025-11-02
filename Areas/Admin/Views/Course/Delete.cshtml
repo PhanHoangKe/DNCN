@@ -1,0 +1,91 @@
+@model EduFlex.Models.Course
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>Xóa Khóa Học</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Xác Nhận Xóa Khóa Học</h5>
+
+                        <form asp-action="Delete" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="CourseId" />
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label d-block">Thumbnail</label>
+                                @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+                                {
+                                    <img src="@Model.ThumbnailUrl" 
+                                         alt="Thumbnail @Model.CourseTitle" 
+                                         class="rounded mb-2" 
+                                         style="width:100px; height:100px; object-fit:cover;"
+                                         onerror="this.src='/Uploads/thumbnails/default.png';" />
+                                }
+                                else
+                                {
+                                    <img src="/Uploads/thumbnails/default.png" 
+                                         alt="Default Thumbnail" 
+                                         class="rounded mb-2" 
+                                         style="width:100px; height:100px; object-fit:cover;" />
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Tiêu đề</label>
+                                <input class="form-control" value="@Model.CourseTitle" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Danh mục</label>
+                                <input class="form-control" value="@(Model.Category?.CategoryName ?? "Chưa có")" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Giảng viên</label>
+                                <input class="form-control" value="@(Model.Instructor?.FullName ?? "Chưa có")" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Cấp độ</label>
+                                <input class="form-control" value="@(Model.Level?.LevelName ?? "Chưa có")" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <input class="form-control" value="@(Model.IsPublished == true ? "Đã xuất bản" : "Chưa xuất bản")" readonly />
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Xác nhận xóa
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary ms-2">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+    .form-control[readonly] {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+    img.rounded {
+        border: 2px solid #dee2e6;
+    }
+</style>
