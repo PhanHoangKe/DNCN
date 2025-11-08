@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class CourseObjective
 {
-    [Key]
     public int ObjectiveId { get; set; }
 
     public int CourseId { get; set; }

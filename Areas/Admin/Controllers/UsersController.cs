@@ -1,157 +1,204 @@
-using System;
-using System.Linq;
 using EduFlex.Models;
+using EduFlex.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace EduFlex.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class UsersController : Controller
+    public class UsersController : Controller  
     {
-        private readonly DataContext _context;
-        public UsersController(DataContext context)
+        private readonly EduFlexContext _context;
+        private readonly IWebHostEnvironment _env;
+
+        public UsersController(EduFlexContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var users = _context.Users
+            var users = await _context.Users
                 .Include(u => u.Role)
                 .OrderByDescending(u => u.CreatedAt)
-                .ToList();
+                .ToListAsync();
             return View(users);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName");
-            return View();
+            ViewData["Roles"] = new SelectList(_context.Roles.AsNoTracking(), "RoleId", "RoleName");
+            return View(new UserCreateViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Users users, IFormFile? avatarFile)
+        public async Task<IActionResult> Create(UserCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName", users?.RoleId);
-                return View(users);
+                ViewData["Roles"] = new SelectList(_context.Roles.AsNoTracking(), "RoleId", "RoleName", model.RoleId);
+                return View(model);
             }
 
-            if (_context.Users.Any(u => u.Email == users.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == model.Email))
             {
-                ModelState.AddModelError("Email", "Email này đã được sử dụng. Vui lòng chọn email khác.");
-                ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName", users?.RoleId);
-                return View(users);
+                ModelState.AddModelError("Email", "Email này đã được sử dụng.");
+                ViewData["Roles"] = new SelectList(_context.Roles.AsNoTracking(), "RoleId", "RoleName", model.RoleId);
+                return View(model);
             }
 
-            users.CreatedAt = DateTime.Now;
-            users.UpdatedAt = DateTime.Now;
-            users.PasswordHash = BCrypt.Net.BCrypt.HashPassword(users.PasswordHash);
-            users.EmailVerified = false;
-            users.LastLoginAt = null;
-
-            if (avatarFile != null && avatarFile.Length > 0)
+            var user = new User
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(avatarFile.FileName);
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/avatars");
-                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                var filePath = Path.Combine(folderPath, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                avatarFile.CopyTo(stream);
-                users.Avatar = "/uploads/avatars/" + fileName;
-            }
-            else
-            {
-                users.Avatar = "/uploads/avatars/default.jpg";
-            }
+                FullName = model.FullName,
+                Email = model.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                PhoneNumber = model.PhoneNumber,
+                Bio = model.Bio,
+                RoleId = model.RoleId ?? 0,
+                IsActive = model.IsActive,
+                EmailVerified = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
 
-            _context.Users.Add(users);
-            _context.SaveChanges();
+            user.Avatar = await SaveAvatarAsync(model.AvatarFile) ?? "/uploads/avatars/default.jpg";
 
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Tạo tài khoản thành công!";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var user = _context.Users.Find(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName", user.RoleId);
-            return View(user);
+            var viewModel = new UserEditViewModel
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Bio = user.Bio,
+                CurrentAvatar = user.Avatar,
+                RoleId = user.RoleId,
+                IsActive = user.IsActive ?? true
+            };
+
+            ViewData["Roles"] = new SelectList(_context.Roles.AsNoTracking(), "RoleId", "RoleName", user.RoleId);
+            return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Users updatedUser, IFormFile? avatarFile)
+        public async Task<IActionResult> Edit(int id, UserEditViewModel model)
         {
-            var user = _context.Users.Find(id);
-            if (user == null) return NotFound();
-
-            if (string.IsNullOrWhiteSpace(updatedUser.PasswordHash))
-                updatedUser.PasswordHash = user.PasswordHash;
+            if (id != model.UserId) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = new SelectList(_context.Roles, "RoleId", "RoleName", updatedUser.RoleId);
-                return View(updatedUser);
+                ViewData["Roles"] = new SelectList(_context.Roles.AsNoTracking(), "RoleId", "RoleName", model.RoleId);
+                return View(model);
             }
 
-            user.FullName = updatedUser.FullName;
-            user.Bio = updatedUser.Bio;
-            user.Email = updatedUser.Email;
-            user.PhoneNumber = updatedUser.PhoneNumber;
-            user.RoleId = updatedUser.RoleId;
-            user.IsActive = updatedUser.IsActive;
-            user.UpdatedAt = DateTime.Now;
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound();
 
-            if (!string.IsNullOrWhiteSpace(updatedUser.PasswordHash) && updatedUser.PasswordHash != user.PasswordHash)
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatedUser.PasswordHash);
-
-            if (avatarFile != null && avatarFile.Length > 0)
+            if (await _context.Users.AnyAsync(u => u.Email == model.Email && u.UserId != id))
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(avatarFile.FileName);
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/avatars");
-                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                var filePath = Path.Combine(folderPath, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                avatarFile.CopyTo(stream);
-                user.Avatar = "/uploads/avatars/" + fileName;
+                ModelState.AddModelError("Email", "Email này đã được sử dụng bởi tài khoản khác.");
+                ViewData["Roles"] = new SelectList(_context.Roles, "RoleId", "RoleName", model.RoleId);
+                return View(model);
             }
 
-            _context.SaveChanges();
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Bio = model.Bio;
+            user.RoleId = model.RoleId;
+            user.IsActive = model.IsActive;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            }
+
+            if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+            {
+                if (!string.IsNullOrEmpty(user.Avatar) && 
+                    user.Avatar.Contains("/uploads/avatars/") && 
+                    !user.Avatar.Contains("default"))
+                {
+                    var oldPath = Path.Combine(_env.WebRootPath, user.Avatar.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
+
+                user.Avatar = await SaveAvatarAsync(model.AvatarFile);
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật tài khoản thành công!";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var user = _context.Users
+            var user = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefault(u => u.UserId == id);
-            if (user == null) return NotFound();
+                .FirstOrDefaultAsync(u => u.UserId == id);
 
+            if (user == null) return NotFound();
             return View(user);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = _context.Users.Find(id);
-            if (user == null) return NotFound();
+            var user = await _context.Users.FindAsync(id);
+            if (user != null)
+            {
+                if (!string.IsNullOrEmpty(user.Avatar) && 
+                    user.Avatar.Contains("/uploads/avatars/") && 
+                    !user.Avatar.Contains("default"))
+                {
+                    var filePath = Path.Combine(_env.WebRootPath, user.Avatar.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                        System.IO.File.Delete(filePath);
+                }
 
-            _context.Users.Remove(user);
-            _context.SaveChanges();
-
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+            TempData["Success"] = "Xóa tài khoản thành công!";
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<string?> SaveAvatarAsync(IFormFile? file)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "avatars");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/avatars/{fileName}";
         }
     }
 }

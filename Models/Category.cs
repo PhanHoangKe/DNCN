@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
-public partial class Categories
+public partial class Category
 {
-    [Key]
     public int CategoryId { get; set; }
 
     public string CategoryName { get; set; } = null!;
@@ -17,13 +15,13 @@ public partial class Categories
 
     public int? ParentCategoryId { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool? IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
     public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
 
-    public virtual ICollection<Categories> InverseParentCategory { get; set; } = new List<Categories>();
+    public virtual ICollection<Category> InverseParentCategory { get; set; } = new List<Category>();
 
-    public virtual Categories? ParentCategory { get; set; }
+    public virtual Category? ParentCategory { get; set; }
 }

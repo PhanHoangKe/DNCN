@@ -1,10 +1,7 @@
-using System;
-using System.Linq;
 using EduFlex.Models;
+using EduFlex.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,323 +10,248 @@ namespace EduFlex.Areas.Admin.Controllers
     [Area("Admin")]
     public class CategoriesController : Controller
     {
-        private readonly DataContext _context;
+        private readonly EduFlexContext _context;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<CategoriesController> _logger;
-        
-        public CategoriesController(DataContext context, ILogger<CategoriesController> logger)
+
+        public CategoriesController(EduFlexContext context, IWebHostEnvironment env, ILogger<CategoriesController> logger)
         {
             _context = context;
+            _env = env;
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var categories = _context.Categories
+            var categories = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .OrderByDescending(c => c.CreatedAt)
-                .ToList();
+                .ToListAsync();
             return View(categories);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            ViewBag.ParentCategories = new SelectList(_context.Categories.Where(c => c.IsActive == true), "CategoryId", "CategoryName");
-            return View();
+            ViewBag.ParentCategories = new SelectList(
+                _context.Categories.Where(c => c.IsActive == true),
+                "CategoryId", "CategoryName");
+            return View(new CategoryCreateViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Categories category, IFormFile? iconFile)
+        public async Task<IActionResult> Create(CategoryCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.ParentCategories = new SelectList(_context.Categories.Where(c => c.IsActive == true), "CategoryId", "CategoryName", category?.ParentCategoryId);
-                return View(category);
+                ViewBag.ParentCategories = new SelectList(
+                    _context.Categories.Where(c => c.IsActive == true),
+                    "CategoryId", "CategoryName", model.ParentCategoryId);
+                return View(model);
             }
 
-            category.CreatedAt = DateTime.Now.ToUniversalTime();
-            category.IsActive = true;
-
-            if (iconFile != null && iconFile.Length > 0)
+            var category = new Category
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(iconFile.FileName);
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/categories");
-                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                var filePath = Path.Combine(folderPath, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                iconFile.CopyTo(stream);
-                category.Icon = "/uploads/categories/" + fileName;
-            }
+                CategoryName = model.CategoryName,
+                Description = model.Description,
+                ParentCategoryId = model.ParentCategoryId,
+                IsActive = model.IsActive,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            category.Icon = await SaveIconAsync(model.IconFile);
 
             _context.Categories.Add(category);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Thêm danh mục thành công!";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var category = _context.Categories.Find(id);
+            var category = await _context.Categories.FindAsync(id);
             if (category == null) return NotFound();
 
-            ViewBag.ParentCategories = new SelectList(_context.Categories.Where(c => c.IsActive == true && c.CategoryId != id), "CategoryId", "CategoryName", category.ParentCategoryId);
-            return View(category);
+            var vm = new CategoryEditViewModel
+            {
+                CategoryId = category.CategoryId,
+                CategoryName = category.CategoryName,
+                Description = category.Description,
+                CurrentIcon = category.Icon,
+                ParentCategoryId = category.ParentCategoryId,
+                IsActive = category.IsActive ?? true
+            };
+
+            ViewBag.ParentCategories = new SelectList(
+                _context.Categories.Where(c => c.IsActive == true && c.CategoryId != id),
+                "CategoryId", "CategoryName", category.ParentCategoryId);
+
+            return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Categories updatedCategory, IFormFile? iconFile)
+        public async Task<IActionResult> Edit(int id, CategoryEditViewModel model)
         {
-            var category = _context.Categories.Find(id);
-            if (category == null) return NotFound();
+            if (id != model.CategoryId) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                ViewBag.ParentCategories = new SelectList(_context.Categories.Where(c => c.IsActive == true && c.CategoryId != id), "CategoryId", "CategoryName", updatedCategory.ParentCategoryId);
-                return View(updatedCategory);
+                ViewBag.ParentCategories = new SelectList(
+                    _context.Categories.Where(c => c.IsActive == true && c.CategoryId != id),
+                    "CategoryId", "CategoryName", model.ParentCategoryId);
+                return View(model);
             }
 
-            // Cập nhật các trường
-            category.CategoryName = updatedCategory.CategoryName;
-            category.Description = updatedCategory.Description;
-            category.ParentCategoryId = updatedCategory.ParentCategoryId;
-            category.IsActive = updatedCategory.IsActive;
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null) return NotFound();
 
-            // Upload icon mới nếu có
-            if (iconFile != null && iconFile.Length > 0)
+            category.CategoryName = model.CategoryName;
+            category.Description = model.Description;
+            category.ParentCategoryId = model.ParentCategoryId;
+            category.IsActive = model.IsActive;
+
+            if (model.IconFile != null && model.IconFile.Length > 0)
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(iconFile.FileName);
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/categories");
-                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-                var filePath = Path.Combine(folderPath, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                iconFile.CopyTo(stream);
-                category.Icon = "/uploads/categories/" + fileName;
+                // Xóa icon cũ
+                if (!string.IsNullOrEmpty(category.Icon) && 
+                    System.IO.File.Exists(Path.Combine(_env.WebRootPath, category.Icon.TrimStart('/'))))
+                {
+                    System.IO.File.Delete(Path.Combine(_env.WebRootPath, category.Icon.TrimStart('/')));
+                }
+
+                category.Icon = await SaveIconAsync(model.IconFile);
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             TempData["Success"] = "Cập nhật danh mục thành công!";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var category = _context.Categories
+            var category = await _context.Categories
                 .Include(c => c.ParentCategory)
-                .FirstOrDefault(c => c.CategoryId == id);
+                .FirstOrDefaultAsync(c => c.CategoryId == id);
+
             if (category == null) return NotFound();
 
-            // Lấy danh sách khóa học liên quan
-            var relatedCourses = _context.Courses
-                .Where(c => c.CategoryId == id)
-                .Select(c => new { c.CourseId, c.CourseTitle, c.IsPublished })
-                .ToList();
+            var relatedCoursesCount = await _context.Courses.CountAsync(c => c.CategoryId == id);
+            var hasChild = await _context.Categories.AnyAsync(c => c.ParentCategoryId == id);
 
-            ViewBag.RelatedCourses = relatedCourses;
-            ViewBag.RelatedCoursesCount = relatedCourses.Count;
-            ViewBag.HasChildCategories = _context.Categories.Any(c => c.ParentCategoryId == id);
+            ViewBag.RelatedCoursesCount = relatedCoursesCount;
+            ViewBag.HasChildCategories = hasChild;
+            ViewBag.CategoryName = category.CategoryName;
 
             return View(category);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id, bool? deleteRelatedCourses = false)
+        public async Task<IActionResult> DeleteConfirmed(int id, bool deleteRelatedCourses = false)
         {
-            _logger.LogInformation("DeleteConfirmed called with id: {CategoryId}, deleteRelatedCourses: {DeleteRelatedCourses}", id, deleteRelatedCourses);
-            
-            var category = _context.Categories.Find(id);
-            if (category == null) 
-            {
-                _logger.LogWarning("Category with id {CategoryId} not found", id);
-                return NotFound();
-            }
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null) return NotFound();
 
-            // Kiểm tra xem có danh mục con không
-            var hasChildCategories = _context.Categories.Any(c => c.ParentCategoryId == id);
-            _logger.LogInformation("Has child categories: {HasChildCategories}", hasChildCategories);
-            if (hasChildCategories)
+            var hasChild = await _context.Categories.AnyAsync(c => c.ParentCategoryId == id);
+            if (hasChild)
             {
-                _logger.LogWarning("Cannot delete category {CategoryId} - has child categories", id);
-                TempData["Error"] = "Không thể xóa danh mục này vì còn có danh mục con!";
+                TempData["Error"] = "Không thể xóa! Danh mục này đang có danh mục con.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Kiểm tra xem có khóa học nào thuộc danh mục này không
-            var relatedCourses = _context.Courses.Where(c => c.CategoryId == id).ToList();
-            _logger.LogInformation("Related courses count: {RelatedCoursesCount}, deleteRelatedCourses: {DeleteRelatedCourses}", relatedCourses.Count, deleteRelatedCourses);
-            if (relatedCourses.Any() && deleteRelatedCourses != true)
+            var relatedCourses = await _context.Courses.Where(c => c.CategoryId == id).ToListAsync();
+
+            if (relatedCourses.Any() && !deleteRelatedCourses)
             {
-                _logger.LogWarning("Cannot delete category {CategoryId} - has related courses but not confirmed", id);
-                TempData["Error"] = "Không thể xóa danh mục này vì còn có khóa học thuộc danh mục này!";
+                TempData["Error"] = $"Danh mục có {relatedCourses.Count} khóa học. Tick xác nhận để xóa tất cả!";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu có khóa học liên quan và người dùng xác nhận xóa
-            if (relatedCourses.Any() && deleteRelatedCourses == true)
+            if (relatedCourses.Any())
             {
-                _logger.LogInformation("Deleting related courses and all related data for category {CategoryId}", id);
-                
+                using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    using (var transaction = _context.Database.BeginTransaction())
+                    var courseIds = relatedCourses.Select(c => c.CourseId).ToList();
+                    var idsParam = string.Join(",", courseIds);
+
+                    // XÓA TẤT CẢ DỮ LIỆU LIÊN QUAN – DÙNG RAW SQL NHANH + AN TOÀN
+                    var sqlCommands = new[]
                     {
-                        try
-                        {
-                            var courseIds = relatedCourses.Select(c => c.CourseId).ToList();
-                            
-                            _logger.LogInformation("Deleting all related data for courses: {CourseIds}", string.Join(",", courseIds));
-                            
-                            // Xóa dữ liệu liên quan theo thứ tự đúng (từ bảng con đến bảng cha)
-                            // 1. Xóa StudentAnswers (cần LessonId từ Lessons)
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE sa FROM StudentAnswers sa 
-                                INNER JOIN QuizAttempts qa ON sa.AttemptId = qa.AttemptId
-                                INNER JOIN Quizzes q ON qa.QuizId = q.QuizId
-                                INNER JOIN Lessons l ON q.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted StudentAnswers");
-                            
-                            // 2. Xóa QuizAttempts (cần QuizId từ Quizzes)
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE qa FROM QuizAttempts qa 
-                                INNER JOIN Quizzes q ON qa.QuizId = q.QuizId
-                                INNER JOIN Lessons l ON q.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted QuizAttempts");
-                            
-                            // 3. Xóa LessonComments
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE lc FROM LessonComments lc 
-                                INNER JOIN Lessons l ON lc.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted LessonComments");
-                            
-                            // 4. Xóa LessonProgresses (cần EnrollmentId, không phải LessonId)
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE lp FROM LessonProgresses lp 
-                                INNER JOIN Enrollments e ON lp.EnrollmentId = e.EnrollmentId
-                                WHERE e.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted LessonProgresses");
-                            
-                            // 5. Xóa LessonAttachments
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE la FROM LessonAttachments la 
-                                INNER JOIN Lessons l ON la.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted LessonAttachments");
-                            
-                            // 6. Xóa Questions và Answers
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE a FROM Answers a
-                                INNER JOIN Questions q ON a.QuestionId = q.QuestionId
-                                INNER JOIN Quizzes qu ON q.QuizId = qu.QuizId
-                                INNER JOIN Lessons l ON qu.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted Answers");
-                            
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE q FROM Questions q
-                                INNER JOIN Quizzes qu ON q.QuizId = qu.QuizId
-                                INNER JOIN Lessons l ON qu.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted Questions");
-                            
-                            // 7. Xóa Quizzes
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE qu FROM Quizzes qu
-                                INNER JOIN Lessons l ON qu.LessonId = l.LessonId 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted Quizzes");
-                            
-                            // 8. Xóa Lessons
-                            _context.Database.ExecuteSqlRaw(@"
-                                DELETE l FROM Lessons l 
-                                INNER JOIN Sections s ON l.SectionId = s.SectionId 
-                                WHERE s.CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted Lessons");
-                            
-                            // 9. Xóa Sections
-                            _context.Database.ExecuteSqlRaw("DELETE FROM Sections WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted Sections");
-                            
-                            // 10. Xóa các bảng liên quan trực tiếp đến Course
-                            _context.Database.ExecuteSqlRaw("DELETE FROM CartItems WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted CartItems");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM OrderDetails WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted OrderDetails");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM Enrollments WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted Enrollments");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseReviews WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted CourseReviews");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseViews WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted CourseViews");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM QnAs WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted QnAs");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM QnAAnswers WHERE QnAId IN (SELECT QnAId FROM QnAs WHERE CourseId IN ({0}))", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted QnAAnswers");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseObjectives WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted CourseObjectives");
-                            
-                            _context.Database.ExecuteSqlRaw("DELETE FROM CourseRequirements WHERE CourseId IN ({0})", string.Join(",", courseIds));
-                            _logger.LogInformation("Deleted CourseRequirements");
-                            
-                            // 11. Cuối cùng xóa các khóa học
-                            _context.Courses.RemoveRange(relatedCourses);
-                            _logger.LogInformation("Deleted {CourseCount} courses", relatedCourses.Count);
-                            
-                            // Commit transaction
-                            transaction.Commit();
-                            _logger.LogInformation("Transaction committed successfully");
-                            
-                            TempData["Success"] = $"Đã xóa danh mục '{category.CategoryName}' và {relatedCourses.Count} khóa học liên quan cùng tất cả dữ liệu liên quan!";
-                        }
-                        catch (Exception ex)
-                        {
-                            transaction.Rollback();
-                            _logger.LogError(ex, "Error in transaction, rolling back for category {CategoryId}", id);
-                            throw;
-                        }
+                        "DELETE FROM StudentAnswers WHERE AttemptId IN (SELECT AttemptId FROM QuizAttempts WHERE QuizId IN (SELECT QuizId FROM Quizzes WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0}))))",
+                        "DELETE FROM QuizAttempts WHERE QuizId IN (SELECT QuizId FROM Quizzes WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0}))))",
+                        "DELETE FROM LessonComments WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0})))",
+                        "DELETE FROM LessonProgresses WHERE EnrollmentId IN (SELECT EnrollmentId FROM Enrollments WHERE CourseId IN ({0}))",
+                        "DELETE FROM LessonAttachments WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0})))",
+                        "DELETE FROM Answers WHERE QuestionId IN (SELECT QuestionId FROM Questions WHERE QuizId IN (SELECT QuizId FROM Quizzes WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0}))))",
+                        "DELETE FROM Questions WHERE QuizId IN (SELECT QuizId FROM Quizzes WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0}))))",
+                        "DELETE FROM Quizzes WHERE LessonId IN (SELECT LessonId FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0})))",
+                        "DELETE FROM Lessons WHERE SectionId IN (SELECT SectionId FROM Sections WHERE CourseId IN ({0}))",
+                        "DELETE FROM Sections WHERE CourseId IN ({0})",
+                        "DELETE FROM CartItems WHERE CourseId IN ({0})",
+                        "DELETE FROM OrderDetails WHERE CourseId IN ({0})",
+                        "DELETE FROM Enrollments WHERE CourseId IN ({0})",
+                        "DELETE FROM CourseReviews WHERE CourseId IN ({0})",
+                        "DELETE FROM CourseViews WHERE CourseId IN ({0})",
+                        "DELETE FROM QnAAnswers WHERE QnAId IN (SELECT QnAId FROM QnAs WHERE CourseId IN ({0}))",
+                        "DELETE FROM QnAs WHERE CourseId IN ({0})",
+                        "DELETE FROM CourseObjectives WHERE CourseId IN ({0})",
+                        "DELETE FROM CourseRequirements WHERE CourseId IN ({0})",
+                        "DELETE FROM Courses WHERE CourseId IN ({0})"
+                    };
+
+                    foreach (var sql in sqlCommands)
+                    {
+                        await _context.Database.ExecuteSqlRawAsync(string.Format(sql, idsParam));
                     }
+
+                    await transaction.CommitAsync();
+                    TempData["Success"] = $"Đã xóa danh mục và {relatedCourses.Count} khóa học + toàn bộ dữ liệu liên quan!";
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error deleting related data for category {CategoryId}", id);
-                    TempData["Error"] = $"Lỗi khi xóa dữ liệu liên quan: {ex.Message}";
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Lỗi xóa dữ liệu liên quan category {Id}", id);
+                    TempData["Error"] = "Lỗi hệ thống khi xóa dữ liệu!";
                     return RedirectToAction(nameof(Index));
                 }
             }
-            else
+
+            // Xóa icon nếu có
+            if (!string.IsNullOrEmpty(category.Icon))
             {
-                _logger.LogInformation("No related courses to delete for category {CategoryId}", id);
-                TempData["Success"] = $"Đã xóa danh mục '{category.CategoryName}' thành công!";
+                var filePath = Path.Combine(_env.WebRootPath, category.Icon.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
             }
 
-            // Xóa danh mục
-            _logger.LogInformation("Deleting category {CategoryId}", id);
             _context.Categories.Remove(category);
-            _context.SaveChanges();
-            _logger.LogInformation("Category {CategoryId} deleted successfully", id);
+            await _context.SaveChangesAsync();
 
+            TempData["Success"] = TempData["Success"] ?? $"Đã xóa danh mục '{category.CategoryName}' thành công!";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Helper: lưu icon
+        private async Task<string?> SaveIconAsync(IFormFile? file)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            var folder = Path.Combine(_env.WebRootPath, "uploads", "categories");
+            Directory.CreateDirectory(folder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(folder, fileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/categories/{fileName}";
         }
     }
 }

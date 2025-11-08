@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class Order
 {
-    [Key]
     public int OrderId { get; set; }
 
     public int UserId { get; set; }
@@ -31,5 +29,5 @@ public partial class Order
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
-    public virtual Users Users { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }

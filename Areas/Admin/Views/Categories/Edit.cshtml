@@ -1,7 +1,7 @@
-@model EduFlex.Models.Categories
-
+@model EduFlex.Areas.Admin.ViewModels.CategoryEditViewModel
 @{
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Chỉnh sửa danh mục";
 }
 
 <main id="main" class="main">
@@ -10,59 +10,90 @@
     </div>
 
     <section class="section dashboard">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Thông Tin Danh Mục</h5>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
 
-                        <form asp-area="Admin" asp-controller="Categories" asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <form asp-action="Edit" method="post" enctype="multipart/form-data">
                             @Html.AntiForgeryToken()
                             <input type="hidden" asp-for="CategoryId" />
 
-                            <div class="mb-3">
-                                <label asp-for="CategoryName" class="form-label">Tên danh mục *</label>
-                                <input asp-for="CategoryName" class="form-control" />
-                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                            <!-- Tên danh mục -->
+                            <div class="mb-4">
+                                <label asp-for="CategoryName" class="form-label fw-semibold"></label>
+                                <input asp-for="CategoryName" class="form-control form-control-lg" placeholder="VD: Lập trình Python" />
+                                <span asp-validation-for="CategoryName" class="text-danger small"></span>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Icon</label>
-                                <input type="file" name="iconFile" class="form-control" accept="image/*" />
-                                @if (!string.IsNullOrEmpty(Model.Icon))
+                            <!-- Icon hiện tại + upload mới -->
+                            <div class="mb-4">
+                                <label asp-for="IconFile" class="form-label fw-semibold"></label>
+                                
+                                @if (!string.IsNullOrEmpty(Model.CurrentIcon))
                                 {
-                                    <div class="mt-2">
-                                        <img src="@Model.Icon" alt="Current Icon" class="mt-2" style="width:60px; height:60px; object-fit:cover;" />
-                                        <small class="text-muted d-block">Icon hiện tại</small>
+                                    <div class="text-center mb-3 p-3 border rounded bg-light">
+                                        <img src="@Model.CurrentIcon" 
+                                             alt="Icon hiện tại" 
+                                             class="img-thumbnail"
+                                             style="width: 100px; height: 100px; object-fit: cover;"
+                                             onerror="this.src='/uploads/categories/default.png';" />
+                                        <p class="mt-2 mb-0 text-muted small">Icon hiện tại</p>
                                     </div>
                                 }
-                                <div class="form-text">Chọn file ảnh mới để thay thế icon hiện tại (không bắt buộc)</div>
+
+                                <input asp-for="IconFile" class="form-control" accept="image/*" />
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Chỉ upload nếu muốn thay đổi icon. Đề xuất: 64x64px hoặc 128x128px
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Description" class="form-label">Mô tả</label>
-                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                                <span asp-validation-for="Description" class="text-danger"></span>
+                            <!-- Mô tả -->
+                            <div class="mb-4">
+                                <label asp-for="Description" class="form-label fw-semibold"></label>
+                                <textarea asp-for="Description" class="form-control" rows="4"
+                                          placeholder="Mô tả ngắn gọn về danh mục này..."></textarea>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="ParentCategoryId" class="form-label">Danh mục cha</label>
-                                <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
-                                    <option value="">-- Chọn danh mục cha (không bắt buộc) --</option>
+                            <!-- Danh mục cha -->
+                            <div class="mb-4">
+                                <label asp-for="ParentCategoryId" class="form-label fw-semibold"></label>
+                                <select asp-for="ParentCategoryId" 
+                                        class="form-select" 
+                                        asp-items="@(ViewBag.ParentCategories as SelectList)">
+                                    <option value="">-- Không có danh mục cha --</option>
                                 </select>
-                                <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
                             </div>
 
-                            <div class="form-check mb-3">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                <label asp-for="IsActive" class="form-check-label">Kích hoạt danh mục</label>
+                            <!-- Trạng thái -->
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveSwitch" />
+                                    <label class="form-check-label fw-semibold" for="isActiveSwitch">
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="text-success"><i class="bi bi-check-circle-fill"></i> Danh mục đang hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger"><i class="bi bi-x-circle-fill"></i> Danh mục đã bị ẩn</span>
+                                        }
+                                    </label>
+                                </div>
                             </div>
 
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Lưu</button>
-                                <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Hủy</a>
+                            <!-- Nút hành động -->
+                            <div class="text-end pt-3 border-top">
+                                <button type="submit" class="btn btn-success btn-lg px-5">
+                                    <i class="bi bi-check-circle"></i> Cập nhật
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary btn-lg ms-2 px-4">
+                                    <i class="bi bi-arrow-left"></i> Quay lại
+                                </a>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class Coupon
 {
-    [Key]
     public int CouponId { get; set; }
 
     public string CouponCode { get; set; } = null!;

@@ -1,4 +1,4 @@
-@model IEnumerable<EduFlex.Models.Users>
+@model IEnumerable<EduFlex.Models.User>
 
 @{
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
@@ -24,7 +24,7 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th class="text-center">ID</th>
-                                    <th class="text-center">Avatar</th>
+                                    <th class="text-center">Hình ảnh</th>
                                     <th class="text-center">Email</th>
                                     <th class="text-center">Họ và tên</th>
                                     <th class="text-center">Số điện thoại</th>
@@ -79,7 +79,7 @@
                                             }
                                         </td>
                                         <td class="text-center align-middle">
-                                            @if (u.IsActive)
+                                            @if (u.IsActive == true)
                                             {
                                                 <span class="badge bg-success">
                                                     <i class="bi bi-check-circle me-1"></i>Hoạt động
@@ -92,7 +92,7 @@
                                                 </span>
                                             }
                                         </td>
-                                        <td class="text-center align-middle">@u.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-center align-middle">@(u.CreatedAt != null ? u.CreatedAt?.ToString("dd/MM/yyyy") : "Chưa có")</td>
                                         <td class="text-center align-middle">
                                             <div class="btn-group" role="group">
                                                 <a asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@u.UserId"

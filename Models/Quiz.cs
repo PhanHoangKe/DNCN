@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class Quiz
 {
-    [Key]
     public int QuizId { get; set; }
 
     public int LessonId { get; set; }

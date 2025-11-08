@@ -1,7 +1,7 @@
-@model EduFlex.Models.Users
-
+@model EduFlex.Areas.Admin.ViewModels.UserCreateViewModel
 @{
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Thêm tài khoản mới";
 }
 
 <main id="main" class="main">
@@ -11,65 +11,70 @@
 
     <section class="section dashboard">
         <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Thông Tin Tài Khoản</h5>
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-semibold">Thông tin tài khoản</h5>
 
-                        <form asp-area="Admin" asp-controller="Users" asp-action="Create" method="post" enctype="multipart/form-data">
+                        <form asp-area="Admin" asp-controller="User" asp-action="Create"
+                              method="post" enctype="multipart/form-data" novalidate>
                             @Html.AntiForgeryToken()
 
                             <div class="mb-3">
-                                <label asp-for="FullName" class="form-label">Họ và tên *</label>
-                                <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" />
+                                <label asp-for="FullName" class="form-label"></label>
+                                <input asp-for="FullName" class="form-control" />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Avatar</label>
-                                <input type="file" name="avatarFile" class="form-control" accept="image/*" />
+                                <label asp-for="AvatarFile" class="form-label"></label>
+                                <input asp-for="AvatarFile" class="form-control" type="file" accept="image/*" />
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Bio" class="form-label">Tiểu sử</label>
-                                <textarea asp-for="Bio" class="form-control" rows="3" placeholder="Nhập tiểu sử"></textarea>
+                                <label asp-for="Bio" class="form-label"></label>
+                                <textarea asp-for="Bio" class="form-control" rows="3"></textarea>
                                 <span asp-validation-for="Bio" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Email" class="form-label">Email *</label>
-                                <input asp-for="Email" type="email" class="form-control" placeholder="Nhập email" />
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="PasswordHash" class="form-label">Mật khẩu *</label>
-                                <input asp-for="PasswordHash" type="password" class="form-control" placeholder="Nhập mật khẩu" />
-                                <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                                <label asp-for="Password" class="form-label"></label>
+                                <input asp-for="Password" class="form-control" type="password" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
-                                <input asp-for="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại" />
+                                <label asp-for="PhoneNumber" class="form-label"></label>
+                                <input asp-for="PhoneNumber" class="form-control" />
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="RoleId" class="form-label">Vai trò *</label>
-                                <select asp-for="RoleId" class="form-select" asp-items="ViewBag.Roles">
+                                <label asp-for="RoleId" class="form-label"></label>
+                                <select asp-for="RoleId" class="form-select" asp-items="@ViewData["Roles"] as SelectList"">
                                     <option value="">-- Chọn vai trò --</option>
                                 </select>
                                 <span asp-validation-for="RoleId" class="text-danger"></span>
                             </div>
 
                             <div class="form-check mb-3">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                                <label asp-for="IsActive" class="form-check-label">Kích hoạt tài khoản</label>
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label asp-for="IsActive" class="form-check-label"></label>
                             </div>
 
                             <div class="text-end">
-                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Lưu</button>
-                                <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Hủy</a>
+                                <button type="submit" class="btn btn-success px-4">
+                                    <i class="bi bi-check-circle"></i> Lưu
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary ms-2 px-4">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -81,16 +86,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        // Kiểm tra RoleId trước khi submit
-        $(function() {
-            $('form').on('submit', function(e) {
-                if (!$('#RoleId').val()) {
-                    e.preventDefault();
-                    alert('Vui lòng chọn vai trò!');
-                    $('#RoleId').focus();
-                }
-            });
-        });
-    </script>
 }

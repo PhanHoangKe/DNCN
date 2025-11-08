@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace EduFlex.Models;
 
 public partial class QnAanswer
 {
-    [Key]
     public int AnswerId { get; set; }
 
     public int QnAid { get; set; }
@@ -25,5 +23,5 @@ public partial class QnAanswer
 
     public virtual QnA QnA { get; set; } = null!;
 
-    public virtual Users Users { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }

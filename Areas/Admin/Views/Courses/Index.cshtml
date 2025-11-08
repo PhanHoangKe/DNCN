@@ -24,7 +24,7 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th class="text-center">ID</th>
-                                    <th class="text-center">Thumbnail</th>
+                                    <th class="text-center">Ảnh</th>
                                     <th class="text-center">Tiêu đề</th>
                                     <th class="text-center">Danh mục</th>
                                     <th class="text-center">Giảng viên</th>
@@ -61,9 +61,9 @@
                                         </td>
                                         <td class="text-center align-middle text-primary">@c.CourseTitle</td>
                                         <td class="text-center align-middle">
-                                            @if (c.Categories != null)
+                                            @if (c.Category != null)
                                             {
-                                                <span class="badge bg-info">@c.Categories.CategoryName</span>
+                                                <span class="badge bg-info">@c.Category.CategoryName</span>
                                             }
                                             else
                                             {
