@@ -1,0 +1,52 @@
+@model IEnumerable<EduFlex.Models.Quiz>
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Danh sách bài kiểm tra";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title">Bài kiểm tra</h5>
+                    <a asp-area="Admin" asp-controller="Quizzes" asp-action="Create" class="btn btn-primary">Thêm mới</a>
+                </div>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Bài học</th>
+                            <th>Mô tả</th>
+                            <th>Thời lượng (phút)</th>
+                            <th>Điểm đỗ</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var q in Model)
+                        {
+                            <tr>
+                                <td>@q.QuizTitle</td>
+                                <td>@(q.Lesson != null ? q.Lesson.LessonTitle : "- ")</td>
+                                <td class="w-25">@q.Description</td>
+                                <td>@q.TimeLimit</td>
+                                <td>@q.PassingScore</td>
+                                <td>
+                                    <a asp-area="Admin" asp-controller="Quizzes" asp-action="Edit" asp-route-id="@q.QuizId" class="btn btn-sm btn-outline-primary">Sửa</a>
+                                    <a asp-area="Admin" asp-controller="Quizzes" asp-action="Delete" asp-route-id="@q.QuizId" class="btn btn-sm btn-outline-danger ms-1">Xóa</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>

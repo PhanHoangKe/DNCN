@@ -1,0 +1,88 @@
+@model EduFlex.Models.Quiz
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Chỉnh sửa Bài kiểm tra";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Thông Tin Bài kiểm tra</h5>
+
+                        <form asp-area="Admin" asp-controller="Quizzes" asp-action="Edit" method="post">
+                            @Html.AntiForgeryToken()
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="QuizId" />
+
+                            <div class="mb-3">
+                                <label asp-for="QuizTitle" class="form-label">Tiêu đề *</label>
+                                <input asp-for="QuizTitle" class="form-control" required />
+                                <span asp-validation-for="QuizTitle" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="LessonId" class="form-label">Bài học *</label>
+                                <select asp-for="LessonId" class="form-select" asp-items="ViewBag.Lessons" required>
+                                    <option value="" disabled>-- Chọn bài học --</option>
+                                </select>
+                                <span asp-validation-for="LessonId" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="TimeLimit" class="form-label">Thời hạn (phút)</label>
+                                    <input asp-for="TimeLimit" type="number" min="0" class="form-control" />
+                                    <span asp-validation-for="TimeLimit" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="PassingScore" class="form-label">Điểm đỗ</label>
+                                    <input asp-for="PassingScore" type="number" step="0.1" min="0"
+                                        class="form-control" />
+                                    <span asp-validation-for="PassingScore" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="MaxAttempts" class="form-label">Số lần làm tối đa</label>
+                                    <input asp-for="MaxAttempts" type="number" min="0" class="form-control" />
+                                    <span asp-validation-for="MaxAttempts" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input type="hidden" name="ShowCorrectAnswers" value="false" />
+                                <input type="checkbox" name="ShowCorrectAnswers" id="ShowCorrectAnswers" value="true"
+                                    class="form-check-input" @(Model?.ShowCorrectAnswers == true ? "checked" : "") />
+                                <label class="form-check-label" for="ShowCorrectAnswers">Hiển thị đáp án đúng</label>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success">Lưu</button>
+                                <a asp-area="Admin" asp-controller="Quizzes" asp-action="Index"
+                                    class="btn btn-secondary ms-2">Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

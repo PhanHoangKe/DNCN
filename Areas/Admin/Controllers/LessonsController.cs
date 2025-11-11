@@ -59,7 +59,6 @@ namespace EduFlex.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 lesson.CreatedAt = DateTime.Now;
-
                 _context.Lessons.Add(lesson);
                 _context.SaveChanges();
 
@@ -72,7 +71,6 @@ namespace EduFlex.Areas.Admin.Controllers
             ViewBag.LessonTypes = new SelectList(_context.LessonTypes, "TypeId", "TypeName", lesson.TypeId);
             return View(lesson);
         }
-
         [HttpGet]
         public IActionResult Edit(int id)
         {
@@ -80,9 +78,8 @@ namespace EduFlex.Areas.Admin.Controllers
                 .Include(l => l.Section)
                 .Include(l => l.Type)
                 .FirstOrDefault(l => l.LessonId == id);
-            
-            if (lesson == null) return NotFound();
 
+            if (lesson == null) return NotFound();
             var sections = _context.Sections
                 .Include(s => s.Course)
                 .OrderBy(s => s.Course.CourseTitle)

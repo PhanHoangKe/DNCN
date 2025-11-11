@@ -1,0 +1,43 @@
+@model EduFlex.Models.Quiz
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Xóa Bài kiểm tra";
+}
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Xác nhận xóa</h5>
+
+                        <dl class="row">
+                            <dt class="col-sm-3">Tiêu đề</dt>
+                            <dd class="col-sm-9">@Model.QuizTitle</dd>
+
+                            <dt class="col-sm-3">Bài học</dt>
+                            <dd class="col-sm-9">@(Model.Lesson != null ? Model.Lesson.LessonTitle : "-")</dd>
+
+                            <dt class="col-sm-3">Câu hỏi</dt>
+                            <dd class="col-sm-9">@Model.Questions.Count</dd>
+                        </dl>
+
+                        <form asp-area="Admin" asp-controller="Quizzes" asp-action="Delete" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="QuizId" />
+                            <button type="submit" class="btn btn-danger">Xóa</button>
+                            <a asp-area="Admin" asp-controller="Quizzes" asp-action="Index"
+                                class="btn btn-secondary ms-2">Hủy</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
